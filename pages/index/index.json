@@ -1,0 +1,6 @@
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "股票市值查询",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#f5f5f5"
+}

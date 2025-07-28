@@ -1,0 +1,108 @@
+/* components/stock-compare/stock-compare.wxss */
+
+.stock-compare {
+  background: white;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 20rpx;
+}
+
+.compare-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx 24rpx 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.compare-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.compare-count {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.empty-compare {
+  text-align: center;
+  padding: 80rpx 40rpx;
+}
+
+.empty-text {
+  color: #999;
+  font-size: 28rpx;
+}
+
+.compare-content {
+  padding: 20rpx;
+}
+
+.compare-chart {
+  height: 300rpx;
+  margin-bottom: 30rpx;
+}
+
+.compare-stocks {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.compare-stock-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  background: #f8f9fa;
+  border-radius: 8rpx;
+}
+
+.stock-basic {
+  flex: 1;
+}
+
+.stock-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 6rpx;
+}
+
+.stock-code {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.stock-stats {
+  display: flex;
+  gap: 20rpx;
+}
+
+.stat-item {
+  text-align: right;
+}
+
+.stat-label {
+  display: block;
+  font-size: 22rpx;
+  color: #999;
+  margin-bottom: 4rpx;
+}
+
+.stat-value {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.stat-value.positive {
+  color: #52c41a;
+}
+
+.stat-value.negative {
+  color: #ff4d4f;
+}

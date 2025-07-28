@@ -1,0 +1,48 @@
+<!--components/stock-compare/stock-compare.wxml-->
+<view class="stock-compare">
+  <view class="compare-header">
+    <text class="compare-title">股票对比</text>
+    <text class="compare-count">{{stocks.length}} 只股票</text>
+  </view>
+  
+  <view wx:if="{{stocks.length === 0}}" class="empty-compare">
+    <text class="empty-text">暂无对比股票</text>
+  </view>
+  
+  <view wx:else class="compare-content">
+    <!-- 对比图表 -->
+    <view class="compare-chart">
+      <ec-canvas 
+        id="compare-chart" 
+        canvas-id="compare-chart" 
+        ec="{{ {onInit: initChart} }}"
+      ></ec-canvas>
+    </view>
+    
+    <!-- 股票列表 -->
+    <view class="compare-stocks">
+      <view 
+        wx:for="{{stocks}}" 
+        wx:key="symbol"
+        class="compare-stock-item"
+      >
+        <view class="stock-basic">
+          <view class="stock-name">{{item.name}}</view>
+          <view class="stock-code">{{item.symbol}}</view>
+        </view>
+        <view class="stock-stats">
+          <view class="stat-item">
+            <text class="stat-label">当前市值</text>
+            <text class="stat-value">{{formatMarketCap(item.currentMarketCap)}}</text>
+          </view>
+          <view class="stat-item">
+            <text class="stat-label">涨跌幅</text>
+            <text class="stat-value {{item.changePercent >= 0 ? 'positive' : 'negative'}}">
+              {{item.changePercent >= 0 ? '+' : ''}}{{item.changePercent}}%
+            </text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

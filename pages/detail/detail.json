@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "ec-canvas": "/ec-canvas/ec-canvas"
+  },
+  "navigationBarTitleText": "股票详情",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#f5f5f5"
+}

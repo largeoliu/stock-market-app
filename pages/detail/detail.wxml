@@ -1,0 +1,116 @@
+<!--pages/detail/detail.wxml-->
+<view class="container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <loading></loading>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 主要内容 -->
+  <view wx:else>
+    <!-- 股票信息 -->
+    <view class="stock-header card">
+      <view class="stock-basic-info">
+        <view class="stock-name">{{stock.name}}</view>
+        <view class="stock-code">{{stock.symbol}} · {{stock.market}}</view>
+      </view>
+      <view class="stock-actions">
+        <button 
+          class="action-btn {{isFavorite() ? 'favorited' : ''}}"
+          bindtap="onToggleFavorite"
+        >
+          <text class="action-icon">{{isFavorite() ? '❤️' : '🤍'}}</text>
+          {{isFavorite() ? '已收藏' : '收藏'}}
+        </button>
+      </view>
+    </view>
+
+    <!-- 市值统计 -->
+    <view class="stats-section card">
+      <view class="stats-title">市值统计</view>
+      <view class="stats-grid">
+        <view class="stat-item">
+          <view class="stat-label">当前市值</view>
+          <view class="stat-value primary">{{stats.currentMarketCapFormatted}}</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-label">期间涨跌</view>
+          <view class="stat-value {{stats.changePercent >= 0 ? 'success' : 'danger'}}">
+            {{stats.changePercent >= 0 ? '+' : ''}}{{stats.changePercent}}%
+          </view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-label">最高市值</view>
+          <view class="stat-value">{{stats.maxMarketCapFormatted}}</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-label">最低市值</view>
+          <view class="stat-value">{{stats.minMarketCapFormatted}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 时间范围选择 -->
+    <view class="period-selector card">
+      <view class="period-title">时间范围</view>
+      <view class="period-buttons">
+        <view 
+          wx:for="{{periods}}" 
+          wx:key="key"
+          class="period-btn {{item.active ? 'active' : ''}}"
+          data-period="{{item.key}}"
+          bindtap="onPeriodChange"
+        >
+          {{item.label}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 图表区域 -->
+    <view class="chart-section card">
+      <view class="chart-title">
+        市值走势图
+        <view wx:if="{{chartLoading}}" class="chart-loading">
+          <loading size="mini"></loading>
+          <text class="loading-text-small">更新中...</text>
+        </view>
+      </view>
+      
+      <view class="chart-container">
+        <ec-canvas 
+          id="mychart-dom-line" 
+          canvas-id="mychart-line" 
+          ec="{{ ec }}"
+          bind:init="initChart"
+        ></ec-canvas>
+      </view>
+    </view>
+
+    <!-- 数据说明 -->
+    <view class="data-info card">
+      <view class="info-title">数据说明</view>
+      <view class="info-content">
+        <text class="info-item">• 市值数据基于历史股价和流通股本计算</text>
+        <text class="info-item">• 数据更新频率：交易日实时更新</text>
+        <text class="info-item">• 图表显示每周数据点，降低噪音便于观察趋势</text>
+        <text class="info-item">• 数据仅供参考，不构成投资建议</text>
+      </view>
+    </view>
+
+    <!-- 历史数据列表（可选显示） -->
+    <view wx:if="{{historyData.length > 0 && historyData.length <= 50}}" class="history-list card">
+      <view class="list-title">历史数据</view>
+      <view class="history-items">
+        <view 
+          wx:for="{{historyData}}" 
+          wx:key="date"
+          wx:for-index="index"
+          class="history-item"
+        >
+          <view class="history-date">{{item.date}}</view>
+          <view class="history-value">{{item.marketCapFormatted}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

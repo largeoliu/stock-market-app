@@ -1,0 +1,90 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar" bindtap="onSearchTap">
+    <view class="search-input">
+      <text class="search-icon">🔍</text>
+      <text class="search-placeholder">搜索股票代码或名称</text>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <loading></loading>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 主要内容 -->
+  <view wx:else>
+    <!-- 热门股票 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">热门股票</text>
+      </view>
+      <view class="stock-list">
+        <view 
+          wx:for="{{hotStocks}}" 
+          wx:key="symbol" 
+          class="stock-item card"
+          data-stock="{{item}}"
+          bindtap="onStockTap"
+        >
+          <view class="stock-info">
+            <view class="stock-name">{{item.name}}</view>
+            <view class="stock-code">{{item.symbol}} · {{item.market}}</view>
+          </view>
+          <view class="stock-price">
+            <view class="price">¥{{item.price}}</view>
+            <view class="price-change {{item.change >= 0 ? 'text-success' : 'text-danger'}}">
+              {{item.change >= 0 ? '+' : ''}}{{item.change}} ({{item.change >= 0 ? '+' : ''}}{{item.changePercent}}%)
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 最近搜索 -->
+    <view wx:if="{{recentSearches.length > 0}}" class="section">
+      <view class="section-header">
+        <text class="section-title">最近搜索</text>
+        <text class="clear-btn" bindtap="clearRecentSearches">清除</text>
+      </view>
+      <view class="recent-list">
+        <view 
+          wx:for="{{recentSearches}}" 
+          wx:key="symbol"
+          class="recent-item"
+          data-stock="{{item}}"
+          bindtap="onStockTap"
+        >
+          <view class="recent-info">
+            <text class="recent-name">{{item.name}}</text>
+            <text class="recent-code">{{item.symbol}}</text>
+          </view>
+          <text class="arrow-icon">›</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 功能说明 -->
+    <view class="section">
+      <view class="card feature-intro">
+        <view class="feature-title">功能介绍</view>
+        <view class="feature-list">
+          <view class="feature-item">
+            <text class="feature-icon">🔍</text>
+            <text>支持A股、港股、美股搜索</text>
+          </view>
+          <view class="feature-item">
+            <text class="feature-icon">📈</text>
+            <text>查看历史市值变化趋势</text>
+          </view>
+          <view class="feature-item">
+            <text class="feature-icon">⏰</text>
+            <text>多时间范围数据分析</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
