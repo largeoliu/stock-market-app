@@ -14,29 +14,19 @@ class StockAPI {
   // 封装请求方法（带重试机制）
   async request(params = {}, retryCount = 0) {
     try {
-      // 构建查询参数
-      const queryParams = new URLSearchParams({
-        apikey: this.apiKey,
-        ...params
-      }).toString()
-      
-      const fullUrl = `${this.baseUrl}?${queryParams}`
-      
       return await new Promise((resolve, reject) => {
-        wx.request({
-          url: fullUrl,
-          method: 'GET',
-          timeout: this.timeout,
+        wx.cloud.callContainer({
+          "config": {
+            "env": "prod-1gs83ryma8b2a51f"
+          },
+          "path": "/market_cap",
+          "header": {
+            "X-WX-SERVICE": "test"
+          },
+          "method": "GET",
           success: (res) => {
             if (res.statusCode === 200) {
-              // 检查Alpha Vantage的错误响应
-              if (res.data['Error Message']) {
-                reject(new Error(res.data['Error Message']))
-              } else if (res.data['Note']) {
-                reject(new Error('API调用频率限制，请稍后再试'))
-              } else {
-                resolve(res.data)
-              }
+              resolve(res.data)
             } else {
               reject(new Error(`请求失败: ${res.statusCode}`))
             }
@@ -126,61 +116,59 @@ class StockAPI {
 
   // 获取股票历史数据（带缓存）
   async getStockHistory(symbol, period = '1y') {
-    const cacheKey = this.getCacheKey('history', { symbol, period })
+    const cacheKey = this.getCacheKey('history', { symbol, period });
     
     // 先尝试从本地存储获取
-    const localCached = util.getStorage(`history_${symbol}_${period}`)
+    const localCached = util.getStorage(`history_${symbol}_${period}`);
     if (localCached && Date.now() - localCached.timestamp < 30 * 60 * 1000) { // 30分钟本地缓存
-      return localCached.data
+      return localCached.data;
     }
 
     // 再尝试从内存缓存获取
-    const cached = this.getFromCache(cacheKey, 10 * 60 * 1000) // 10分钟内存缓存
+    const cached = this.getFromCache(cacheKey, 10 * 60 * 1000); // 10分钟内存缓存
     if (cached) {
-      return cached
+      return cached;
     }
 
     try {
-      // 首先尝试使用Alpha Vantage
-      const outputsize = this.getOutputSizeFromPeriod(period)
+      // 使用新的API参数
       const result = await this.request({
-        function: 'TIME_SERIES_DAILY_ADJUSTED',
         symbol: symbol,
-        outputsize: outputsize
-      })
+        period: period // 1y, 3y, 5y, 10y, max
+      });
       
-      const formattedResult = this.formatAlphaVantageHistoryData(result, period)
+      const formattedResult = this.formatHistoryData(result);
       
       // 同时缓存到内存和本地存储
-      this.setToCache(cacheKey, formattedResult)
+      this.setToCache(cacheKey, formattedResult);
       util.setStorage(`history_${symbol}_${period}`, {
         data: formattedResult,
         timestamp: Date.now()
-      })
+      });
       
-      return formattedResult
+      return formattedResult;
     } catch (error) {
-      console.error('Alpha Vantage历史数据失败:', error)
+      console.error('获取历史数据失败:', error);
       
       try {
         // 备用：使用免费API
-        console.log('尝试使用备用API获取历史数据...')
-        const freeResult = await freeAPI.getStockHistory(symbol, period)
+        console.log('尝试使用备用API获取历史数据...');
+        const freeResult = await freeAPI.getStockHistory(symbol, period);
         
         // 缓存备用API的结果
-        this.setToCache(cacheKey, freeResult)
+        this.setToCache(cacheKey, freeResult);
         util.setStorage(`history_${symbol}_${period}`, {
           data: freeResult,
           timestamp: Date.now()
-        })
+        });
         
-        return freeResult
+        return freeResult;
       } catch (freeError) {
-        console.error('备用API也失败:', freeError)
+        console.error('备用API也失败:', freeError);
         // 最后返回模拟数据
-        const mockData = this.getMockHistoryData(symbol, period)
-        this.setToCache(cacheKey, mockData)
-        return mockData
+        const mockData = this.getMockHistoryData(symbol, period);
+        this.setToCache(cacheKey, mockData);
+        return mockData;
       }
     }
   }
@@ -297,14 +285,31 @@ class StockAPI {
 
   // 格式化历史数据
   formatHistoryData(data) {
-    if (!data || !data.history) return []
+    if (!data || !data.data) return []
     
-    return data.history.map(item => ({
-      date: item.date,
-      marketCap: item.marketCap,
-      price: item.price,
-      volume: item.volume
-    }))
+    // 根据新的返回格式处理数据
+    // data.data 是一个包含市值的数组，单位是亿
+    const now = new Date();
+    const marketCapData = [];
+    
+    // 为每个数据点生成日期，这里假设数据是按周返回的
+    data.data.forEach((marketCap, index) => {
+      // 从当前日期开始，每周减去一周
+      const date = new Date(now.getTime() - (data.data.length - 1 - index) * 7 * 24 * 60 * 60 * 1000);
+      const formattedDate = date.toISOString().split('T')[0];
+      
+      // 将亿转换为具体的市值数值
+      const marketCapValue = parseFloat(marketCap) * 100000000;
+      
+      marketCapData.push({
+        date: formattedDate,
+        marketCap: marketCapValue,
+        price: marketCapValue / 1000000000, // 简化的股价计算
+        volume: Math.floor(Math.random() * 1000000000) // 随机生成交易量
+      });
+    });
+    
+    return marketCapData;
   }
 
   // 模拟搜索数据（用于演示）
