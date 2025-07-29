@@ -56,10 +56,96 @@ class StockAPI {
   }
 
 
-  // 搜索股票（使用Mock数据）
-  async searchStock(keyword) {
-    // 直接返回模拟数据
-    return this.getMockSearchData(keyword)
+  // 搜索股票
+  async searchStock(keyword, retryCount = 0) {
+    try {
+      const path = `/stock_search?keyword=${encodeURIComponent(keyword)}`;
+      console.log('搜索股票:', keyword);
+      console.log('请求路径:', path);
+      
+      return await new Promise((resolve, reject) => {
+        wx.cloud.callContainer({
+          "config": {
+            "env": "prod-1gs83ryma8b2a51f"
+          },
+          "path": path,
+          "header": {
+            "X-WX-SERVICE": "test"
+          },
+          "method": "GET",
+          success: (res) => {
+            console.log('搜索API响应:', res);
+            if (res.statusCode === 200) {
+              // 处理新的API响应格式
+              const formattedData = this.formatSearchData(res.data);
+              resolve(formattedData)
+            } else {
+              reject(new Error(`搜索请求失败: ${res.statusCode}`))
+            }
+          },
+          fail: (err) => {
+            console.error('搜索API请求失败:', err);
+            reject(new Error(`网络请求失败: ${err.errMsg}`))
+          }
+        })
+      })
+    } catch (error) {  
+      if (retryCount < this.maxRetries) {
+        console.log(`搜索请求重试 ${retryCount + 1}/${this.maxRetries}:`, error.message)
+        await this.delay(2000 * (retryCount + 1))
+        return this.searchStock(keyword, retryCount + 1)
+      }
+      
+      console.error('搜索失败，使用模拟数据:', error);
+      // 返回模拟数据作为后备
+      return this.getMockSearchData(keyword)
+    }
+  }
+
+  // 格式化搜索数据
+  formatSearchData(data) {
+    console.log('开始格式化搜索数据:', data);
+    
+    // 新API格式: { count: number, results: [...] }
+    if (data && typeof data.count === 'number' && Array.isArray(data.results)) {
+      console.log(`检测到新的搜索API格式，共${data.count}条结果`);
+      
+      const formattedResults = data.results.map(item => {
+        // 确定市场类型
+        let market = 'A股'; // 默认A股
+        const code = item.code;
+        
+        if (code.startsWith('00') || code.startsWith('30')) {
+          market = 'A股'; // 深市
+        } else if (code.startsWith('60') || code.startsWith('68')) {
+          market = 'A股'; // 沪市
+        } else if (code.startsWith('8') || code.startsWith('4')) {
+          market = 'A股'; // 北交所/新三板
+        }
+        
+        return {
+          symbol: code,
+          name: item.name,
+          market: market,
+          // 为了兼容现有代码，添加一些默认值
+          price: 0,
+          change: 0,
+          changePercent: 0
+        };
+      });
+      
+      console.log('格式化完成，结果数量:', formattedResults.length);
+      return formattedResults;
+    }
+    
+    // 兼容旧格式或直接返回数组
+    if (Array.isArray(data)) {
+      console.log('检测到数组格式的搜索数据');
+      return data;
+    }
+    
+    console.log('未知的搜索数据格式，返回空数组');
+    return [];
   }
 
   // 获取股票历史数据
