@@ -125,13 +125,13 @@
 }
 
 .stat-value.success {
-  color: #00D084;
-  text-shadow: 0 0 20rpx rgba(0, 208, 132, 0.3);
+  color: #FF4757;
+  text-shadow: 0 0 20rpx rgba(255, 71, 87, 0.3);
 }
 
 .stat-value.danger {
-  color: #FF4757;
-  text-shadow: 0 0 20rpx rgba(255, 71, 87, 0.3);
+  color: #00D084;
+  text-shadow: 0 0 20rpx rgba(0, 208, 132, 0.3);
 }
 
 /* 时间范围选择 */
