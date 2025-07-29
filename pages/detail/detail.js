@@ -20,6 +20,11 @@ Page({
     historyData: [],
     loading: true,
     chartLoading: false,
+    chartError: false,
+    
+    // 图表数据
+    chartData: [],
+    chartXData: [],
     
     // 统计信息
     stats: {
@@ -29,13 +34,7 @@ Page({
       avgMarketCap: 0,
       changePercent: 0,
       totalChange: 0
-    },
-
-    // 图表配置
-    ec: {
-      onInit: null
-    },
-    chartOptions: {}
+    }
   },
 
   onLoad(options) {
@@ -127,68 +126,10 @@ Page({
     const dates = data.map(item => item.date)
     const marketCaps = data.map(item => item.marketCap)
 
-    const option = {
-      tooltip: {
-        trigger: 'axis',
-        formatter: (params) => {
-          const param = params[0]
-          const marketCap = stockAPI.formatMarketCap(param.value)
-          return `${param.name}<br/>市值: ${marketCap}`
-        }
-      },
-      grid: {
-        left: 40,
-        right: 40,
-        top: 40,
-        bottom: 60
-      },
-      xAxis: {
-        type: 'category',
-        data: dates,
-        axisLabel: {
-          formatter: (value) => {
-            const date = new Date(value)
-            return `${date.getMonth() + 1}/${date.getDate()}`
-          }
-        }
-      },
-      yAxis: {
-        type: 'value',
-        axisLabel: {
-          formatter: (value) => {
-            return stockAPI.formatMarketCap(value)
-          }
-        }
-      },
-      series: [{
-        data: marketCaps,
-        type: 'line',
-        smooth: true,
-        symbol: 'none',
-        lineStyle: {
-          color: '#1296db',
-          width: 2
-        },
-        areaStyle: {
-          color: {
-            type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [{
-              offset: 0,
-              color: 'rgba(18, 150, 219, 0.3)'
-            }, {
-              offset: 1,
-              color: 'rgba(18, 150, 219, 0.05)'
-            }]
-          }
-        }
-      }]
-    }
-
-    this.setData({ chartOptions: option })
+    this.setData({
+      chartData: marketCaps,
+      chartXData: dates
+    })
   },
 
   // 切换时间范围
@@ -214,7 +155,6 @@ Page({
         this.data.stock.symbol, 
         period
       )
-      
       // 格式化历史数据显示
       const formattedHistoryData = historyData.map(item => ({
         ...item,
@@ -235,24 +175,6 @@ Page({
     }
   },
 
-  // 图表初始化
-  initChart(canvas, width, height, dpr) {
-    const echarts = require('../../ec-canvas/echarts')
-    
-    const chart = echarts.init(canvas, null, {
-      width: width,
-      height: height,
-      devicePixelRatio: dpr
-    })
-    
-    canvas.setChart(chart)
-    
-    if (this.data.chartOptions && Object.keys(this.data.chartOptions).length > 0) {
-      chart.setOption(this.data.chartOptions)
-    }
-    
-    return chart
-  },
 
   // 分享
   onShareAppMessage() {

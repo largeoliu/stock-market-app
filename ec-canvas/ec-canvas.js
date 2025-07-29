@@ -57,70 +57,90 @@ Component({
     },
 
     initByOldWay(callback) {
-      // version < 2.9.0：原来的方式初始化
-      ctx = wx.createCanvasContext(this.data.canvasId, this)
-      const canvas = new WxCanvas(ctx, this.data.canvasId)
+      try {
+        // version < 2.9.0：原来的方式初始化
+        ctx = wx.createCanvasContext(this.data.canvasId, this)
+        const canvas = new WxCanvas(ctx, this.data.canvasId, false)
 
-      echarts.setCanvasCreator(() => {
-        return canvas
-      })
-      // 延迟执行
-      setTimeout(() => {
-        const canvasDpr = wx.getSystemInfoSync().pixelRatio
-        const canvasWidth = canvas.width
-        const canvasHeight = canvas.height
-
-        var ec = this.data.ec
-        if (typeof callback === 'function') {
-          this.chart = callback(canvas, canvasWidth, canvasHeight, canvasDpr)
-        } else if (ec && typeof ec.onInit === 'function') {
-          this.chart = ec.onInit(canvas, canvasWidth, canvasHeight, canvasDpr)
-        } else {
-          this.triggerEvent('init', {
-            canvas: canvas,
-            width: canvasWidth,
-            height: canvasHeight,
-            dpr: canvasDpr
-          })
-        }
-      }, 100)
-    },
-
-    initByNewWay(callback) {
-      // version >= 2.9.0：使用新的方式初始化
-      const query = wx.createSelectorQuery().in(this)
-      query
-        .select('.ec-canvas')
-        .fields({
-          node: true,
-          size: true
+        echarts.setCanvasCreator(() => {
+          return canvas
         })
-        .exec((res) => {
-          const canvasNode = res[0].node
-          const canvasWidth = res[0].width
-          const canvasHeight = res[0].height
-
-          const ctx = canvasNode.getContext('2d')
-
-          const canvas = new WxCanvas(ctx, this.data.canvasId, true, canvasNode)
-          echarts.setCanvasCreator(() => {
-            return canvas
-          })
+        // 延迟执行
+        setTimeout(() => {
+          const canvasDpr = wx.getSystemInfoSync().pixelRatio || 1
+          const canvasWidth = canvas.width || 300
+          const canvasHeight = canvas.height || 200
 
           var ec = this.data.ec
           if (typeof callback === 'function') {
-            this.chart = callback(canvas, canvasWidth, canvasHeight, wx.getSystemInfoSync().pixelRatio)
+            this.chart = callback(canvas, canvasWidth, canvasHeight, canvasDpr)
           } else if (ec && typeof ec.onInit === 'function') {
-            this.chart = ec.onInit(canvas, canvasWidth, canvasHeight, wx.getSystemInfoSync().pixelRatio)
+            this.chart = ec.onInit(canvas, canvasWidth, canvasHeight, canvasDpr)
           } else {
             this.triggerEvent('init', {
               canvas: canvas,
               width: canvasWidth,
               height: canvasHeight,
-              dpr: wx.getSystemInfoSync().pixelRatio
+              dpr: canvasDpr
             })
           }
-        })
+        }, 100)
+      } catch (error) {
+        console.error('图表初始化失败 (旧方式):', error)
+      }
+    },
+
+    initByNewWay(callback) {
+      try {
+        // version >= 2.9.0：使用新的方式初始化
+        const query = wx.createSelectorQuery().in(this)
+        query
+          .select('.ec-canvas')
+          .fields({
+            node: true,
+            size: true
+          })
+          .exec((res) => {
+            if (!res || !res[0]) {
+              console.error('无法获取canvas节点')
+              return
+            }
+
+            const canvasNode = res[0].node
+            const canvasWidth = res[0].width || 300
+            const canvasHeight = res[0].height || 200
+
+            if (!canvasNode) {
+              console.error('canvas节点不存在')
+              return
+            }
+
+            const ctx = canvasNode.getContext('2d')
+            const canvas = new WxCanvas(ctx, this.data.canvasId, true, canvasNode)
+            
+            echarts.setCanvasCreator(() => {
+              return canvas
+            })
+
+            var ec = this.data.ec
+            const dpr = wx.getSystemInfoSync().pixelRatio || 1
+            
+            if (typeof callback === 'function') {
+              this.chart = callback(canvas, canvasWidth, canvasHeight, dpr)
+            } else if (ec && typeof ec.onInit === 'function') {
+              this.chart = ec.onInit(canvas, canvasWidth, canvasHeight, dpr)
+            } else {
+              this.triggerEvent('init', {
+                canvas: canvas,
+                width: canvasWidth,
+                height: canvasHeight,
+                dpr: dpr
+              })
+            }
+          })
+      } catch (error) {
+        console.error('图表初始化失败 (新方式):', error)
+      }
     },
 
     canvasToTempFilePath(opt) {
@@ -214,11 +234,11 @@ function WxCanvas(ctx, canvasId, isNew, canvasNode) {
   this.ctx = ctx
   this.canvasId = canvasId
   this.chart = null
-  this.isNew = isNew
+  this.isNew = isNew || false
 
-  if (isNew) {
+  if (isNew && canvasNode) {
     this.canvasNode = canvasNode
-  } else {
+  } else if (ctx) {
     this._initStyle(ctx)
   }
 
@@ -310,16 +330,17 @@ WxCanvas.prototype.removeAttributeNS = function() {
 
 Object.defineProperty(WxCanvas.prototype, 'width', {
   get: function () {
-    if (this.isNew) {
-      return this.canvasNode.width
-    } else {
-      return this.ctx.canvas.width
+    if (this.isNew && this.canvasNode) {
+      return this.canvasNode.width || 300
+    } else if (this.ctx && this.ctx.canvas) {
+      return this.ctx.canvas.width || 300
     }
+    return 300 // 默认宽度
   },
   set: function (value) {
-    if (this.isNew) {
+    if (this.isNew && this.canvasNode) {
       this.canvasNode.width = value
-    } else {
+    } else if (this.ctx && this.ctx.canvas) {
       this.ctx.canvas.width = value
     }
   }
@@ -327,16 +348,17 @@ Object.defineProperty(WxCanvas.prototype, 'width', {
 
 Object.defineProperty(WxCanvas.prototype, 'height', {
   get: function () {
-    if (this.isNew) {
-      return this.canvasNode.height
-    } else {
-      return this.ctx.canvas.height
+    if (this.isNew && this.canvasNode) {
+      return this.canvasNode.height || 200
+    } else if (this.ctx && this.ctx.canvas) {
+      return this.ctx.canvas.height || 200
     }
+    return 200 // 默认高度
   },
   set: function (value) {
-    if (this.isNew) {
+    if (this.isNew && this.canvasNode) {
       this.canvasNode.height = value
-    } else {
+    } else if (this.ctx && this.ctx.canvas) {
       this.ctx.canvas.height = value
     }
   }

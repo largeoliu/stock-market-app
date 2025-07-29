@@ -109,16 +109,12 @@ Component({
       this.setData({ chartOptions: option })
     },
 
-    // 格式化市值
+    // 格式化市值（统一使用亿为单位）
     formatMarketCap(value) {
-      if (value >= 1000000000000) {
-        return (value / 1000000000000).toFixed(1) + '万亿'
-      } else if (value >= 100000000) {
-        return (value / 100000000).toFixed(1) + '亿'
-      } else if (value >= 10000) {
-        return (value / 10000).toFixed(1) + '万'
+      if (value >= 10000) {
+        return (value / 10000).toFixed(1) + '万亿'
       } else {
-        return value.toString()
+        return value.toFixed(1) + '亿'
       }
     },
 

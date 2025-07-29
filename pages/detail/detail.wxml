@@ -77,12 +77,12 @@
       </view>
       
       <view class="chart-container">
-        <ec-canvas 
-          id="mychart-dom-line" 
-          canvas-id="mychart-line" 
-          ec="{{ ec }}"
-          bind:init="initChart"
-        ></ec-canvas>
+        <simple-chart 
+          data="{{ chartData }}"
+          x-data="{{ chartXData }}"
+          width="300"
+          height="200"
+        ></simple-chart>
       </view>
     </view>
 

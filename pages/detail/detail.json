@@ -1,6 +1,6 @@
 {
   "usingComponents": {
-    "ec-canvas": "/ec-canvas/ec-canvas"
+    "simple-chart": "/components/simple-chart/simple-chart"
   },
   "navigationBarTitleText": "股票详情",
   "enablePullDownRefresh": true,
