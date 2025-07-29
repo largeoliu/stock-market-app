@@ -1,4 +1,7 @@
 <canvas 
   canvas-id="simple-chart" 
   style="width: {{width}}px; height: {{height}}px;"
+  bindtouchmove="onTouchMove"
+  bindtouchend="onTouchEnd"
+  bindtouchcancel="onTouchEnd"
 ></canvas>
