@@ -63,16 +63,30 @@
   <view wx:else class="default-content">
     <!-- 热门股票 -->
     <view class="section">
-      <view class="section-title">热门股票</view>
-      <view class="hot-stocks">
+      <view class="section-title">热门搜索</view>
+      
+      <!-- 加载状态 -->
+      <view wx:if="{{hotStocksLoading}}" class="hot-stocks-loading">
+        <loading size="mini"></loading>
+        <text class="loading-text-small">加载中...</text>
+      </view>
+      
+      <!-- 热门股票列表 -->
+      <view wx:else class="hot-stocks-list">
         <view 
           wx:for="{{hotStocks}}" 
-          wx:key="symbol"
-          class="hot-stock-tag"
+          wx:key="name"
+          class="hot-stock-item"
           data-stock="{{item}}"
           bindtap="onHotStockTap"
         >
-          {{item.name}}
+          <view class="hot-stock-rank">{{item.rank}}</view>
+          <view class="hot-stock-info">
+            <text class="hot-stock-name">{{item.name}}</text>
+            <text class="hot-stock-change {{item.changePercent && item.changePercent.indexOf('-') === 0 ? 'text-danger' : 'text-success'}}">
+              {{item.changePercent || '--'}}
+            </text>
+          </view>
         </view>
       </view>
     </view>

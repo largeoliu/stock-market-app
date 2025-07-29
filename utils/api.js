@@ -347,6 +347,47 @@ class StockAPI {
     return result
   }
 
+  // 获取热门搜索股票
+  async getHotSearchStocks(retryCount = 0) {
+    try {
+      const path = `/stock_hot_search`;
+      console.log('获取热门搜索股票');
+      console.log('请求路径:', path);
+      
+      return await new Promise((resolve, reject) => {
+        wx.cloud.callContainer({
+          "config": {
+            "env": "prod-1gs83ryma8b2a51f"
+          },
+          "path": path,
+          "header": {
+            "X-WX-SERVICE": "test"
+          },
+          "method": "GET",
+          success: (res) => {
+            console.log('热门搜索API响应:', res);
+            if (res.statusCode === 200) {
+              resolve(res.data)
+            } else {
+              reject(new Error(`请求失败: ${res.statusCode}`))
+            }
+          },
+          fail: (err) => {
+            console.error('热门搜索API请求失败:', err);
+            reject(new Error(`网络请求失败: ${err.errMsg}`))
+          }
+        })
+      })
+    } catch (error) {  
+      if (retryCount < this.maxRetries) {
+        console.log(`热门搜索请求重试 ${retryCount + 1}/${this.maxRetries}:`, error.message)
+        await this.delay(2000 * (retryCount + 1))
+        return this.getHotSearchStocks(retryCount + 1)
+      }
+      throw error
+    }
+  }
+
   // 格式化价格变化
   formatPriceChange(change, changePercent) {
     const sign = change >= 0 ? '+' : ''

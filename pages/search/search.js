@@ -9,18 +9,13 @@ Page({
     recentSearches: [],
     loading: false,
     showResults: false,
-    hotStocks: [
-      { symbol: '000001', name: '平安银行', market: 'A股' },
-      { symbol: '000002', name: '万科A', market: 'A股' },
-      { symbol: '000858', name: '五粮液', market: 'A股' },
-      { symbol: '600036', name: '招商银行', market: 'A股' },
-      { symbol: '600519', name: '贵州茅台', market: 'A股' },
-      { symbol: '000725', name: '京东方A', market: 'A股' }
-    ]
+    hotStocks: [],
+    hotStocksLoading: true
   },
 
   onLoad() {
     this.loadRecentSearches()
+    this.loadHotStocks()
     // 创建防抖搜索函数
     this.debouncedSearch = util.debounce(this.performSearch.bind(this), 500)
   },
@@ -33,6 +28,43 @@ Page({
   loadRecentSearches() {
     const recentSearches = util.getStorage('recent_searches', [])
     this.setData({ recentSearches: recentSearches.slice(0, 8) })
+  },
+
+  // 加载热门搜索股票
+  async loadHotStocks() {
+    try {
+      this.setData({ hotStocksLoading: true })
+      
+      const response = await stockAPI.getHotSearchStocks()
+      console.log('热门搜索数据:', response)
+      
+      if (response && response.results) {
+        // 处理API返回的数据格式
+        const hotStocks = response.results.map((item, index) => ({
+          name: item.name,
+          rank: item.rank || index + 1,
+          changePercent: item.change_percent,
+          heatScore: item.heat_score,
+          // 注意：API返回的数据中没有symbol，可能需要后续通过name搜索获取
+          symbol: '', // 暂时为空，后续可能需要额外处理
+          market: 'A股' // 默认为A股
+        }))
+        
+        this.setData({ 
+          hotStocks: hotStocks,
+          hotStocksLoading: false 
+        })
+      } else {
+        throw new Error('数据格式错误')
+      }
+    } catch (error) {
+      console.error('加载热门股票失败:', error)
+      this.setData({ 
+        hotStocksLoading: false,
+        hotStocks: [] // 设置为空数组，避免显示错误
+      })
+      // 不显示错误提示，静默失败
+    }
   },
 
   // 输入框变化
@@ -78,9 +110,36 @@ Page({
   },
 
   // 点击热门股票
-  onHotStockTap(e) {
-    const stock = e.currentTarget.dataset.stock
-    this.selectStock(stock)
+  async onHotStockTap(e) {
+    const hotStock = e.currentTarget.dataset.stock
+    
+    try {
+      // 显示加载状态
+      util.showLoading('搜索中...')
+      
+      // 通过股票名称搜索获取完整信息
+      const searchResults = await stockAPI.searchStock(hotStock.name)
+      
+      if (searchResults && searchResults.length > 0) {
+        // 找到匹配的股票，使用第一个结果
+        const stock = searchResults[0]
+        this.selectStock(stock)
+      } else {
+        // 如果搜索不到，使用热门股票的基本信息
+        const stock = {
+          name: hotStock.name,
+          symbol: hotStock.name, // 临时使用name作为symbol
+          market: hotStock.market || 'A股'
+        }
+        this.selectStock(stock)
+      }
+      
+      util.hideLoading()
+    } catch (error) {
+      console.error('搜索热门股票失败:', error)
+      util.hideLoading()
+      util.showToast('搜索失败，请重试')
+    }
   },
 
   // 点击最近搜索
