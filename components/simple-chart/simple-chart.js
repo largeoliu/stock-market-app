@@ -53,8 +53,11 @@ Component({
       // 清空画布
       ctx.clearRect(0, 0, width, height)
       
-      // 绘制背景
-      ctx.setFillStyle('#ffffff')
+      // 绘制背景 - Longbridge风格
+      const gradient = ctx.createLinearGradient(0, 0, 0, height)
+      gradient.addColorStop(0, '#FAFBFC')
+      gradient.addColorStop(1, '#F5F7FA')
+      ctx.setFillStyle(gradient)
       ctx.fillRect(0, 0, width, height)
       
       // 计算绘图区域
@@ -84,8 +87,8 @@ Component({
     },
 
     drawGrid(ctx, padding, chartWidth, chartHeight) {
-      // 网格线
-      ctx.setStrokeStyle('#f0f0f0')
+      // 网格线 - Longbridge风格
+      ctx.setStrokeStyle('rgba(0, 0, 0, 0.08)')
       ctx.setLineWidth(1)
       
       // 水平网格线
@@ -98,7 +101,8 @@ Component({
       }
       
       // 坐标轴
-      ctx.setStrokeStyle('#e0e0e0')
+      ctx.setStrokeStyle('rgba(0, 194, 255, 0.4)')
+      ctx.setLineWidth(2)
       ctx.beginPath()
       ctx.moveTo(padding, padding)
       ctx.lineTo(padding, padding + chartHeight)
@@ -109,10 +113,11 @@ Component({
     drawArea(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange) {
       if (data.length < 2) return
       
-      // 创建渐变色
+      // 创建渐变色 - Longbridge风格
       const gradient = ctx.createLinearGradient(0, padding, 0, padding + chartHeight)
-      gradient.addColorStop(0, 'rgba(18, 150, 219, 0.3)')
-      gradient.addColorStop(1, 'rgba(18, 150, 219, 0.05)')
+      gradient.addColorStop(0, 'rgba(0, 194, 255, 0.4)')
+      gradient.addColorStop(0.5, 'rgba(0, 129, 255, 0.2)')
+      gradient.addColorStop(1, 'rgba(0, 194, 255, 0.02)')
       ctx.setFillStyle(gradient)
       
       ctx.beginPath()
@@ -141,8 +146,11 @@ Component({
     drawLine(ctx, data, padding, chartWidth, chartHeight, minValue, valueRange) {
       if (data.length < 2) return
       
-      ctx.setStrokeStyle('#1296db')
-      ctx.setLineWidth(2)
+      // 主线条 - Longbridge风格
+      ctx.setStrokeStyle('#00C2FF')
+      ctx.setLineWidth(3)
+      ctx.setLineCap('round')
+      ctx.setLineJoin('round')
       ctx.beginPath()
 
       data.forEach((value, index) => {
@@ -160,7 +168,7 @@ Component({
     },
 
     drawLabels(ctx, data, xData, padding, chartWidth, chartHeight, minValue, maxValue) {
-      ctx.setFillStyle('#666666')
+      ctx.setFillStyle('#6B7280')
       ctx.setFontSize(12)
       
       // Y轴标签
@@ -195,10 +203,15 @@ Component({
       const { width, height } = this.properties
       const ctx = wx.createCanvasContext(this.data.canvasId, this)
       
-      ctx.setFillStyle('#f8f8f8')
+      // 背景 - Longbridge风格
+      const gradient = ctx.createLinearGradient(0, 0, 0, height)
+      gradient.addColorStop(0, '#FAFBFC')
+      gradient.addColorStop(1, '#F5F7FA')
+      ctx.setFillStyle(gradient)
       ctx.fillRect(0, 0, width, height)
       
-      ctx.setFillStyle('#999999')
+      // 文字
+      ctx.setFillStyle('#6B7280')
       ctx.setFontSize(14)
       ctx.setTextAlign('center')
       ctx.setTextBaseline('middle')
@@ -219,6 +232,22 @@ Component({
       } else {
         return value.toFixed(0)
       }
+    },
+
+    // 添加光晕效果
+    addGlowEffect(ctx, color, blur = 10) {
+      ctx.setShadowColor(color)
+      ctx.setShadowBlur(blur)
+      ctx.setShadowOffsetX(0)
+      ctx.setShadowOffsetY(0)
+    },
+
+    // 清除光晕效果
+    clearGlowEffect(ctx) {
+      ctx.setShadowColor('transparent')
+      ctx.setShadowBlur(0)
+      ctx.setShadowOffsetX(0)
+      ctx.setShadowOffsetY(0)
     }
   }
 })
