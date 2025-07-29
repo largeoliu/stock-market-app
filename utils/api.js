@@ -8,19 +8,26 @@ class StockAPI {
   }
 
   // 封装微信云托管market_cap请求
-  async requestMarketCap(retryCount = 0) {
+  async requestMarketCap(symbol, retryCount = 0) {
     try {
+      // 处理股票代码格式，去掉市场后缀（如 .SZ, .HK 等）
+      const cleanSymbol = symbol.split('.')[0];
+      const path = `/market_cap?symbol=${encodeURIComponent(cleanSymbol)}`;
+      console.log('原始股票代码:', symbol, '-> 清理后:', cleanSymbol);
+      console.log('请求路径:', path);
+      
       return await new Promise((resolve, reject) => {
         wx.cloud.callContainer({
           "config": {
             "env": "prod-1gs83ryma8b2a51f"
           },
-          "path": "/market_cap",
+          "path": path,
           "header": {
             "X-WX-SERVICE": "test"
           },
           "method": "GET",
           success: (res) => {
+            console.log('API响应:', res);
             if (res.statusCode === 200) {
               resolve(res.data)
             } else {
@@ -28,6 +35,7 @@ class StockAPI {
             }
           },
           fail: (err) => {
+            console.error('API请求失败:', err);
             reject(new Error(`网络请求失败: ${err.errMsg}`))
           }
         })
@@ -36,7 +44,7 @@ class StockAPI {
       if (retryCount < this.maxRetries) {
         console.log(`请求重试 ${retryCount + 1}/${this.maxRetries}:`, error.message)
         await this.delay(2000 * (retryCount + 1))
-        return this.requestMarketCap(retryCount + 1)
+        return this.requestMarketCap(symbol, retryCount + 1)
       }
       throw error
     }
@@ -57,13 +65,16 @@ class StockAPI {
   // 获取股票历史数据
   async getStockHistory(symbol, period = '1y') {
     try {
-      // 使用微信云托管market_cap接口
-      const result = await this.requestMarketCap();
+      // 使用微信云托管market_cap接口，传递symbol参数
+      console.log('正在获取股票历史数据:', symbol, period);
+      const result = await this.requestMarketCap(symbol);
       const formattedResult = this.formatHistoryData(result);
+      console.log('获取到的数据:', formattedResult.length, '个数据点');
       return formattedResult;
     } catch (error) {
       console.error('获取历史数据失败:', error);
       // 返回模拟数据
+      console.log('使用模拟数据');
       return this.getMockHistoryData(symbol, period);
     }
   }
