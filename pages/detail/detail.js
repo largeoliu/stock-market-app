@@ -11,10 +11,10 @@ Page({
     },
     currentPeriod: '1y', // 当前选择的时间范围
     periods: [
-      { key: '1y', label: '近一年', active: true },
-      { key: '3y', label: '近三年', active: false },
-      { key: '5y', label: '近五年', active: false },
-      { key: '10y', label: '近十年', active: false },
+      { key: '1y', label: '1年', active: true },
+      { key: '3y', label: '3年', active: false },
+      { key: '5y', label: '5年', active: false },
+      { key: '10y', label: '10年', active: false },
       { key: 'max', label: '全部', active: false }
     ],
     historyData: [],

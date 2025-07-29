@@ -25,14 +25,29 @@
       </view>
     </view>
 
-    <!-- 市值统计 -->
-    <view class="stats-section card">
-      <view class="stats-title">市值统计</view>
-      <view class="stats-grid">
-        <view class="stat-item">
-          <view class="stat-label">当前市值</view>
-          <view class="stat-value primary">{{stats.currentMarketCapFormatted}}</view>
+    <!-- 时间范围选择 -->
+    <view class="period-selector card">
+      <!-- 当前市值 -->
+      <view class="current-market-cap">
+        <view class="market-cap-label">当前市值</view>
+        <view class="market-cap-value">{{stats.currentMarketCapFormatted}}</view>
+      </view>
+      
+      <view class="period-title">时间范围</view>
+      <view class="period-buttons">
+        <view 
+          wx:for="{{periods}}" 
+          wx:key="key"
+          class="period-btn {{item.active ? 'active' : ''}}"
+          data-period="{{item.key}}"
+          bindtap="onPeriodChange"
+        >
+          {{item.label}}
         </view>
+      </view>
+      
+      <!-- 市值统计 -->
+      <view class="stats-grid">
         <view class="stat-item">
           <view class="stat-label">期间涨跌</view>
           <view class="stat-value {{stats.changePercent >= 0 ? 'success' : 'danger'}}">
@@ -46,22 +61,6 @@
         <view class="stat-item">
           <view class="stat-label">最低市值</view>
           <view class="stat-value">{{stats.minMarketCapFormatted}}</view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 时间范围选择 -->
-    <view class="period-selector card">
-      <view class="period-title">时间范围</view>
-      <view class="period-buttons">
-        <view 
-          wx:for="{{periods}}" 
-          wx:key="key"
-          class="period-btn {{item.active ? 'active' : ''}}"
-          data-period="{{item.key}}"
-          bindtap="onPeriodChange"
-        >
-          {{item.label}}
         </view>
       </view>
     </view>

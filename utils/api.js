@@ -96,9 +96,8 @@ class StockAPI {
         return this.searchStock(keyword, retryCount + 1)
       }
       
-      console.error('搜索失败，使用模拟数据:', error);
-      // 返回模拟数据作为后备
-      return this.getMockSearchData(keyword)
+      console.error('搜索失败:', error);
+      throw error
     }
   }
 
@@ -111,22 +110,10 @@ class StockAPI {
       console.log(`检测到新的搜索API格式，共${data.count}条结果`);
       
       const formattedResults = data.results.map(item => {
-        // 确定市场类型
-        let market = 'A股'; // 默认A股
-        const code = item.code;
-        
-        if (code.startsWith('00') || code.startsWith('30')) {
-          market = 'A股'; // 深市
-        } else if (code.startsWith('60') || code.startsWith('68')) {
-          market = 'A股'; // 沪市
-        } else if (code.startsWith('8') || code.startsWith('4')) {
-          market = 'A股'; // 北交所/新三板
-        }
-        
         return {
-          symbol: code,
+          symbol: item.code,
           name: item.name,
-          market: market,
+          market: 'A股',
           // 为了兼容现有代码，添加一些默认值
           price: 0,
           change: 0,
@@ -166,9 +153,7 @@ class StockAPI {
       return filteredData;
     } catch (error) {
       console.error('获取历史数据失败:', error);
-      // 返回模拟数据
-      console.log('使用模拟数据');
-      return this.getMockHistoryData(symbol, period);
+      throw error;
     }
   }
 
@@ -326,90 +311,6 @@ class StockAPI {
     return filteredData;
   }
 
-  // 模拟搜索数据（用于演示）
-  getMockSearchData(keyword) {
-    const mockData = [
-      {
-        symbol: '000001.SZ',
-        name: '平安银行',
-        market: 'A股',
-        price: 12.50,
-        change: 0.15,
-        changePercent: 1.22
-      },
-      {
-        symbol: '00700.HK',
-        name: '腾讯控股',
-        market: '港股',
-        price: 368.20,
-        change: -5.80,
-        changePercent: -1.55
-      },
-      {
-        symbol: 'AAPL',
-        name: '苹果公司',
-        market: '美股',
-        price: 175.43,
-        change: 2.15,
-        changePercent: 1.24
-      }
-    ]
-    
-    return mockData.filter(item => 
-      item.name.includes(keyword) || 
-      item.symbol.toLowerCase().includes(keyword.toLowerCase())
-    )
-  }
-
-  // 模拟历史数据（用于演示）
-  getMockHistoryData(symbol, period) {
-    // 使用symbol参数来生成不同的基础数据
-    const symbolHash = symbol.split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0)
-      return a & a
-    }, 0)
-    const now = new Date()
-    const data = []
-    let days = 365
-    
-    switch (period) {
-      case '3y':
-      case '近三年':
-        days = 365 * 3
-        break
-      case '5y':
-      case '近五年':
-        days = 365 * 5
-        break
-      case '10y':
-      case '近十年':
-        days = 365 * 10
-        break
-      case 'max':
-      case '全部':
-        days = 365 * 20
-        break
-    }
-    
-    // 生成模拟的历史市值数据（使用亿为单位）
-    let baseMarketCap = 100 + (Math.abs(symbolHash) % 500) // 基于symbol生成不同的基础市值（亿）
-    for (let i = days; i >= 0; i -= 7) { // 每周一个数据点
-      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
-      const randomFactor = 0.8 + Math.random() * 0.4 // 0.8-1.2的随机波动
-      const marketCap = Math.floor(baseMarketCap * randomFactor * 100) / 100 // 保疙2位小数
-      
-      data.push({
-        date: date.toISOString().split('T')[0],
-        marketCap: marketCap, // 亿为单位
-        price: Math.floor(marketCap / 10 * 100) / 100, // 简化的价格计算
-        volume: Math.floor(Math.random() * 1000000000)
-      })
-      
-      baseMarketCap = marketCap // 基于上一个值进行波动
-    }
-    
-    return data.sort((a, b) => new Date(a.date) - new Date(b.date))
-  }
 
   // 格式化市值显示（统一使用亿为单位）
   formatMarketCap(value) {

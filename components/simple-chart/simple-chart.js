@@ -181,20 +181,27 @@ Component({
         ctx.fillText(label, padding - 8, y)
       }
 
-      // X轴标签
+      // X轴标签 - 只显示起始和结束时间
       if (xData && xData.length > 0) {
         ctx.setTextAlign('center')
         ctx.setTextBaseline('top')
-        const labelCount = Math.min(4, xData.length)
-        for (let i = 0; i < labelCount; i++) {
-          const index = Math.floor(i * (xData.length - 1) / Math.max(labelCount - 1, 1))
-          const x = padding + (index / (data.length - 1)) * chartWidth
-          const dateStr = xData[index]
-          const date = new Date(dateStr)
-          if (!isNaN(date.getTime())) {
-            const label = `${date.getMonth() + 1}/${date.getDate()}`
-            ctx.fillText(label, x, padding + chartHeight + 8)
-          }
+        
+        // 起始时间
+        const startX = padding
+        const startDateStr = xData[0]
+        const startDate = new Date(startDateStr)
+        if (!isNaN(startDate.getTime())) {
+          const startLabel = startDate.toISOString().split('T')[0] // YYYY-MM-DD格式
+          ctx.fillText(startLabel, startX, padding + chartHeight + 8)
+        }
+        
+        // 结束时间
+        const endX = padding + chartWidth
+        const endDateStr = xData[xData.length - 1]
+        const endDate = new Date(endDateStr)
+        if (!isNaN(endDate.getTime())) {
+          const endLabel = endDate.toISOString().split('T')[0] // YYYY-MM-DD格式
+          ctx.fillText(endLabel, endX, padding + chartHeight + 8)
         }
       }
     },

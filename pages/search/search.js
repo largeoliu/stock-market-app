@@ -10,12 +10,12 @@ Page({
     loading: false,
     showResults: false,
     hotStocks: [
-      { symbol: '000001.SZ', name: '平安银行', market: 'A股' },
-      { symbol: '00700.HK', name: '腾讯控股', market: '港股' },
-      { symbol: 'AAPL', name: '苹果公司', market: '美股' },
-      { symbol: '000002.SZ', name: '万科A', market: 'A股' },
-      { symbol: '00941.HK', name: '中国移动', market: '港股' },
-      { symbol: 'TSLA', name: '特斯拉', market: '美股' }
+      { symbol: '000001', name: '平安银行', market: 'A股' },
+      { symbol: '000002', name: '万科A', market: 'A股' },
+      { symbol: '000858', name: '五粮液', market: 'A股' },
+      { symbol: '600036', name: '招商银行', market: 'A股' },
+      { symbol: '600519', name: '贵州茅台', market: 'A股' },
+      { symbol: '000725', name: '京东方A', market: 'A股' }
     ]
   },
 

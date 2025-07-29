@@ -109,9 +109,9 @@
       <view class="search-tips card">
         <view class="tips-title">搜索提示</view>
         <view class="tips-content">
-          <text class="tip-item">• 支持股票代码搜索，如：000001、00700、AAPL</text>
-          <text class="tip-item">• 支持股票名称搜索，如：平安银行、腾讯</text>
-          <text class="tip-item">• 支持A股、港股、美股查询</text>
+          <text class="tip-item">• 支持股票代码搜索，如：000001、600519、002389</text>
+          <text class="tip-item">• 支持股票名称搜索，如：平安银行、贵州茅台</text>
+          <text class="tip-item">• 仅支持A股市场查询</text>
         </view>
       </view>
     </view>
