@@ -48,57 +48,6 @@
   font-size: 28rpx;
 }
 
-/* 股票列表 */
-.stock-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-}
-
-.stock-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 30rpx 24rpx;
-  transition: all 0.3s ease;
-}
-
-.stock-item:active {
-  transform: scale(0.98);
-  background-color: #f8f8f8;
-}
-
-.stock-info {
-  flex: 1;
-}
-
-.stock-name {
-  font-size: 32rpx;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 8rpx;
-}
-
-.stock-code {
-  font-size: 26rpx;
-  color: #999;
-}
-
-.stock-price {
-  text-align: right;
-}
-
-.price {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 8rpx;
-}
-
-.price-change {
-  font-size: 26rpx;
-}
-
 /* 最近搜索 */
 .recent-list {
   background: white;
@@ -142,32 +91,3 @@
   color: #999;
 }
 
-/* 功能介绍 */
-.feature-intro {
-  padding: 30rpx 24rpx;
-}
-
-.feature-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 20rpx;
-}
-
-.feature-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  font-size: 28rpx;
-  color: #666;
-}
-
-.feature-icon {
-  font-size: 32rpx;
-  margin-right: 16rpx;
-}

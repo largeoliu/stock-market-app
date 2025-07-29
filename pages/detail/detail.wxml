@@ -95,16 +95,6 @@
       </view>
     </view>
 
-    <!-- 数据说明 -->
-    <view class="data-info card">
-      <view class="info-title">数据说明</view>
-      <view class="info-content">
-        <text class="info-item">• 市值数据基于历史股价和流通股本计算</text>
-        <text class="info-item">• 数据更新频率：交易日实时更新</text>
-        <text class="info-item">• 图表显示每周数据点，降低噪音便于观察趋势</text>
-        <text class="info-item">• 数据仅供参考，不构成投资建议</text>
-      </view>
-    </view>
 
     <!-- 历史数据列表（可选显示） -->
     <view wx:if="{{historyData.length > 0 && historyData.length <= 50}}" class="history-list card">

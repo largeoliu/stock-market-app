@@ -286,43 +286,6 @@ ec-canvas {
   height: 100%;
 }
 
-/* 数据说明 */
-.data-info {
-  padding: 40rpx 32rpx;
-  margin-bottom: 24rpx;
-  background: #FAFBFC;
-  border: 1rpx solid #E5E8EB;
-}
-
-.info-title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #1A1D24;
-  margin-bottom: 24rpx;
-  letter-spacing: 0.5rpx;
-}
-
-.info-content {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-}
-
-.info-item {
-  font-size: 26rpx;
-  color: #6B7280;
-  line-height: 1.8;
-  padding-left: 20rpx;
-  position: relative;
-}
-
-.info-item::before {
-  content: '•';
-  position: absolute;
-  left: 0;
-  color: #00C2FF;
-  font-weight: bold;
-}
 
 /* 历史数据列表 */
 .history-list {
