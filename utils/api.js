@@ -7,12 +7,12 @@ class StockAPI {
     this.maxRetries = 2
   }
 
-  // 封装微信云托管market_cap请求
-  async requestMarketCap(symbol, retryCount = 0) {
+  // 封装微信云托管stock_data请求
+  async requestStockData(symbol, indicator = '总市值', period = '近一月', retryCount = 0) {
     try {
       // 处理股票代码格式，去掉市场后缀（如 .SZ, .HK 等）
       const cleanSymbol = symbol.split('.')[0];
-      const path = `/market_cap?symbol=${encodeURIComponent(cleanSymbol)}`;
+      const path = `/stock_data?symbol=${encodeURIComponent(cleanSymbol)}&indicator=${encodeURIComponent(indicator)}&period=${encodeURIComponent(period)}`;
       console.log('原始股票代码:', symbol, '-> 清理后:', cleanSymbol);
       console.log('请求路径:', path);
       
@@ -44,7 +44,7 @@ class StockAPI {
       if (retryCount < this.maxRetries) {
         console.log(`请求重试 ${retryCount + 1}/${this.maxRetries}:`, error.message)
         await this.delay(2000 * (retryCount + 1))
-        return this.requestMarketCap(symbol, retryCount + 1)
+        return this.requestStockData(symbol, indicator, period, retryCount + 1)
       }
       throw error
     }
@@ -65,9 +65,9 @@ class StockAPI {
   // 获取股票历史数据
   async getStockHistory(symbol, period = '1y') {
     try {
-      // 使用微信云托管market_cap接口，获取所有历史数据
+      // 使用微信云托管stock_data接口，获取所有历史数据
       console.log('正在获取股票历史数据:', symbol, period);
-      const result = await this.requestMarketCap(symbol);
+      const result = await this.requestStockData(symbol, '总市值', period);
       const allData = this.formatHistoryData(result);
       console.log('获取到的全部数据:', allData.length, '个数据点');
       
@@ -89,9 +89,31 @@ class StockAPI {
   formatHistoryData(data) {
     console.log('开始格式化数据:', data);
     
-    // 新格式: 数组包含对象，每个对象有 date 和 market_cap 字段
-    if (Array.isArray(data) && data.length > 0 && data[0].date && data[0].market_cap) {
+    // 新格式: 数组包含对象，每个对象有 date 和 value 字段
+    if (Array.isArray(data) && data.length > 0 && data[0].date && data[0].value) {
       console.log('检测到新的API数据格式');
+      
+      const marketCapData = data.map(item => {
+        const marketCapInYi = parseFloat(item.value);
+        
+        return {
+          date: item.date,
+          marketCap: marketCapInYi, // 亿为单位
+          price: marketCapInYi / 10, // 简化的股价计算
+          volume: Math.floor(Math.random() * 1000000000) // 随机生成交易量
+        };
+      });
+      
+      // 按日期排序
+      marketCapData.sort((a, b) => new Date(a.date) - new Date(b.date));
+      console.log('格式化完成，数据点数量:', marketCapData.length);
+      
+      return marketCapData;
+    }
+    
+    // 兼容旧格式: 数组包含对象，每个对象有 date 和 market_cap 字段
+    if (Array.isArray(data) && data.length > 0 && data[0].date && data[0].market_cap) {
+      console.log('检测到旧的API数据格式');
       
       const marketCapData = data.map(item => {
         const marketCapInYi = parseFloat(item.market_cap);
