@@ -314,11 +314,37 @@ class StockAPI {
 
   // 格式化市值显示（统一使用亿为单位）
   formatMarketCap(value) {
+    let result
     if (value >= 10000) {
-      return (value / 10000).toFixed(2) + '万'
+      result = (value / 10000).toFixed(2) + '万'
     } else {
-      return value.toFixed(2)
+      result = value.toFixed(2)
     }
+    
+    // 为数字部分添加千位分隔符
+    return this.addCommas(result)
+  }
+
+  // 添加千位分隔符
+  addCommas(str) {
+    // 分离数字部分和单位部分
+    const match = str.match(/^([0-9.]+)(.*)$/)
+    if (!match) return str
+    
+    const [, numberPart, unitPart] = match
+    const parts = numberPart.split('.')
+    
+    // 为整数部分添加逗号
+    const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    
+    // 重新组合
+    let result = integerPart
+    if (parts[1]) {
+      result += '.' + parts[1]
+    }
+    result += unitPart
+    
+    return result
   }
 
   // 格式化价格变化

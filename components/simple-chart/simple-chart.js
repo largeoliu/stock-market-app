@@ -384,15 +384,41 @@ Component({
     formatValue(value) {
       if (typeof value !== 'number' || isNaN(value)) return '0'
       
+      let result
       if (value >= 1000000000000) {
-        return (value / 1000000000000).toFixed(1) + '万'
+        result = (value / 1000000000000).toFixed(1) + '万'
       } else if (value >= 100000000) {
-        return (value / 100000000).toFixed(1)
+        result = (value / 100000000).toFixed(1)
       } else if (value >= 10000) {
-        return (value / 10000).toFixed(1)
+        result = (value / 10000).toFixed(1)
       } else {
-        return value.toFixed(0)
+        result = value.toFixed(0)
       }
+      
+      // 为数字部分添加千位分隔符
+      return this.addCommas(result)
+    },
+
+    // 添加千位分隔符
+    addCommas(str) {
+      // 分离数字部分和单位部分
+      const match = str.match(/^([0-9.]+)(.*)$/)
+      if (!match) return str
+      
+      const [, numberPart, unitPart] = match
+      const parts = numberPart.split('.')
+      
+      // 为整数部分添加逗号
+      const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+      
+      // 重新组合
+      let result = integerPart
+      if (parts[1]) {
+        result += '.' + parts[1]
+      }
+      result += unitPart
+      
+      return result
     },
 
     // 添加光晕效果
