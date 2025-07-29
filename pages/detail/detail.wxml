@@ -34,15 +34,25 @@
       </view>
       
       <view class="period-title">时间范围</view>
-      <view class="period-buttons">
-        <view 
-          wx:for="{{periods}}" 
-          wx:key="key"
-          class="period-btn {{item.active ? 'active' : ''}}"
-          data-period="{{item.key}}"
-          bindtap="onPeriodChange"
-        >
-          {{item.label}}
+      <view class="period-selector-container">
+        <view class="period-selector-track">
+          <!-- 滑动指示器背景 -->
+          <view 
+            class="period-selector-indicator" 
+            style="transform: translateX({{indicatorPosition}}rpx); width: {{indicatorWidth}}rpx;"
+          ></view>
+          
+          <!-- 选项按钮 -->
+          <view 
+            wx:for="{{periods}}" 
+            wx:key="key"
+            class="period-selector-item {{item.active ? 'active' : ''}}"
+            data-period="{{item.key}}"
+            data-index="{{index}}"
+            bindtap="onPeriodChange"
+          >
+            <text class="period-label">{{item.label}}</text>
+          </view>
         </view>
       </view>
       

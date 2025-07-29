@@ -171,39 +171,76 @@
   letter-spacing: 0.5rpx;
 }
 
-.period-buttons {
+/* 分段选择器容器 */
+.period-selector-container {
+  width: 100%;
+  margin-top: 32rpx;
+  /* 确保在不同设备上的一致性 */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.period-selector-track {
+  position: relative;
   display: flex;
-  gap: 12rpx;
-  overflow-x: auto;
-  white-space: nowrap;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 4rpx;
-}
-
-.period-btn {
   background: #F5F7FA;
-  color: #6B7280;
+  border-radius: 32rpx;
+  padding: 8rpx;
+  box-shadow: inset 0 2rpx 4rpx rgba(0, 0, 0, 0.06);
   border: 1rpx solid #E5E8EB;
-  border-radius: 24rpx;
-  padding: 20rpx 32rpx;
-  font-size: 32rpx;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-  text-align: center;
-  min-width: 100rpx;
+  /* 确保布局稳定 */
+  min-height: 72rpx;
+  align-items: center;
 }
 
-.period-btn:active {
-  transform: scale(0.95);
-}
-
-.period-btn.active {
+/* 滑动指示器 */
+.period-selector-indicator {
+  position: absolute;
+  top: 8rpx;
+  bottom: 8rpx;
   background: linear-gradient(135deg, #00C2FF 0%, #0081FF 100%);
+  border-radius: 24rpx;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4rpx 12rpx rgba(0, 194, 255, 0.3), 
+              0 2rpx 4rpx rgba(0, 194, 255, 0.2);
+  z-index: 1;
+}
+
+/* 选择器选项 */
+.period-selector-item {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 16rpx;
+  border-radius: 24rpx;
+  transition: all 0.2s ease;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.period-selector-item:active {
+  transform: scale(0.96);
+}
+
+/* 防止选中状态下的蓝色高亮 */
+.period-selector-item {
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+}
+
+.period-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #6B7280;
+  transition: color 0.3s ease;
+  white-space: nowrap;
+}
+
+.period-selector-item.active .period-label {
   color: white;
-  border-color: #00C2FF;
-  box-shadow: 0 8rpx 24rpx rgba(0, 194, 255, 0.3);
-  transform: translateY(-2rpx);
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
 }
 
 /* 图表区域 */
