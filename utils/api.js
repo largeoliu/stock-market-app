@@ -8,7 +8,7 @@ class StockAPI {
   }
 
   // 封装微信云托管stock_data请求
-  async requestStockData(symbol, indicator = '总市值', period = '近一月', retryCount = 0) {
+  async requestStockData(symbol, indicator = '总市值', period = '近一年', retryCount = 0) {
     try {
       // 处理股票代码格式，去掉市场后缀（如 .SZ, .HK 等）
       const cleanSymbol = symbol.split('.')[0];
@@ -67,7 +67,9 @@ class StockAPI {
     try {
       // 使用微信云托管stock_data接口，获取所有历史数据
       console.log('正在获取股票历史数据:', symbol, period);
-      const result = await this.requestStockData(symbol, '总市值', period);
+      // 将英文period转换为中文period
+      const chinesePeriod = this.convertPeriodToChinese(period);
+      const result = await this.requestStockData(symbol, '总市值', chinesePeriod);
       const allData = this.formatHistoryData(result);
       console.log('获取到的全部数据:', allData.length, '个数据点');
       
@@ -182,6 +184,18 @@ class StockAPI {
     return marketCapData;
   }
 
+  // 将英文period转换为中文period
+  convertPeriodToChinese(period) {
+    const periodMap = {
+      '1y': '近一年',
+      '3y': '近三年', 
+      '5y': '近五年',
+      '10y': '近十年',
+      'max': '全部'
+    };
+    return periodMap[period] || '近一年';
+  }
+
   // 根据时间范围过滤数据
   filterDataByPeriod(data, period) {
     if (!data || data.length === 0) return data;
@@ -191,18 +205,23 @@ class StockAPI {
     
     switch (period) {
       case '1y':
+      case '近一年':
         cutoffDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
         break;
       case '3y':
+      case '近三年':
         cutoffDate = new Date(now.getFullYear() - 3, now.getMonth(), now.getDate());
         break;
       case '5y':
+      case '近五年':
         cutoffDate = new Date(now.getFullYear() - 5, now.getMonth(), now.getDate());
         break;
       case '10y':
+      case '近十年':
         cutoffDate = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
         break;
       case 'max':
+      case '全部':
         // 返回所有数据
         return data;
       default:
@@ -269,15 +288,19 @@ class StockAPI {
     
     switch (period) {
       case '3y':
+      case '近三年':
         days = 365 * 3
         break
       case '5y':
+      case '近五年':
         days = 365 * 5
         break
       case '10y':
+      case '近十年':
         days = 365 * 10
         break
       case 'max':
+      case '全部':
         days = 365 * 20
         break
     }
