@@ -11,10 +11,17 @@ Page({
     showResults: false,
     hotStocks: [],
     hotStocksLoading: true,
-    currentTab: 'hot' // 默认显示热门搜索
+    currentTab: 'hot', // 默认显示热门搜索
+    safeAreaTop: 0 // 安全区域顶部高度
   },
 
   onLoad() {
+    // 获取系统信息，设置安全区域
+    const systemInfo = wx.getSystemInfoSync()
+    this.setData({
+      safeAreaTop: systemInfo.safeArea?.top || systemInfo.statusBarHeight || 0
+    })
+    
     this.loadRecentSearches()
     this.loadHotStocks()
     // 创建防抖搜索函数

@@ -1,5 +1,11 @@
 /* pages/index/index.wxss */
 
+/* 安全区域 */
+.safe-area-top {
+  background: #F5F7FA;
+  width: 100%;
+}
+
 /* 标题栏 */
 .header {
   padding: 40rpx 32rpx 20rpx;

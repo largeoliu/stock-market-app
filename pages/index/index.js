@@ -5,10 +5,17 @@ const util = require('../../utils/util.js')
 Page({
   data: {
     recentSearches: [], // 最近搜索
-    loading: false
+    loading: false,
+    safeAreaTop: 0 // 安全区域顶部高度
   },
 
   onLoad() {
+    // 获取系统信息，设置安全区域
+    const systemInfo = wx.getSystemInfoSync()
+    this.setData({
+      safeAreaTop: systemInfo.safeArea?.top || systemInfo.statusBarHeight || 0
+    })
+    
     this.loadRecentSearches()
   },
 
