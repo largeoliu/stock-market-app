@@ -1,5 +1,31 @@
 /* pages/index/index.wxss */
 
+/* 标题栏 */
+.header {
+  padding: 40rpx 32rpx 20rpx;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #1A1D24;
+  letter-spacing: 2rpx;
+  position: relative;
+}
+
+.header-title::after {
+  content: '';
+  position: absolute;
+  bottom: -16rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80rpx;
+  height: 6rpx;
+  background: linear-gradient(90deg, #00C2FF 0%, #0081FF 100%);
+  border-radius: 3rpx;
+}
+
 /* 搜索栏 */
 .search-bar {
   margin-bottom: 30rpx;
