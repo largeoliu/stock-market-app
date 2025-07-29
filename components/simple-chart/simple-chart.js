@@ -66,10 +66,12 @@ Component({
       ctx.fillRect(0, 0, width, height)
       
       // 计算绘图区域 - 为信息面板留出空间
-      const padding = 40
-      const topPadding = 80 // 为信息面板留出更多空间
-      const chartWidth = width - padding * 2
-      const chartHeight = height - topPadding - padding
+      const leftPadding = 45 // 为Y轴标签留出足够空间
+      const rightPadding = 20
+      const topPadding = 50 // 为信息面板留出更多空间
+      const bottomPadding = 20
+      const chartWidth = width - leftPadding - rightPadding
+      const chartHeight = height - topPadding - bottomPadding
       
       // 计算数据范围
       const minValue = Math.min(...data)
@@ -77,32 +79,32 @@ Component({
       const valueRange = Math.max(maxValue - minValue, 1)
       
       // 绘制网格线
-      this.drawGrid(ctx, padding, topPadding, chartWidth, chartHeight)
+      this.drawGrid(ctx, leftPadding, topPadding, chartWidth, chartHeight)
       
       // 绘制面积填充
-      this.drawArea(ctx, data, padding, topPadding, chartWidth, chartHeight, minValue, valueRange)
+      this.drawArea(ctx, data, leftPadding, topPadding, chartWidth, chartHeight, minValue, valueRange)
       
       // 绘制折线
-      this.drawLine(ctx, data, padding, topPadding, chartWidth, chartHeight, minValue, valueRange)
+      this.drawLine(ctx, data, leftPadding, topPadding, chartWidth, chartHeight, minValue, valueRange)
       
       // 绘制标签
-      this.drawLabels(ctx, data, xData, padding, topPadding, chartWidth, chartHeight, minValue, maxValue)
+      this.drawLabels(ctx, data, xData, leftPadding, topPadding, chartWidth, chartHeight, minValue, maxValue)
       
       // 绘制信息面板（仅在有悬停时显示）
       if (this.data.showTooltip && this.data.hoveredIndex !== -1) {
-        this.drawInfoPanel(ctx, data, xData, padding, topPadding, chartWidth, chartHeight, minValue, maxValue)
+        this.drawInfoPanel(ctx, data, xData, leftPadding, topPadding, chartWidth, chartHeight, minValue, maxValue)
       }
       
       // 绘制悬停指示器
       if (this.data.showTooltip && this.data.hoveredIndex !== -1) {
-        this.drawHoverIndicator(ctx, data, padding, topPadding, chartWidth, chartHeight, minValue, Math.max(maxValue - minValue, 1))
+        this.drawHoverIndicator(ctx, data, leftPadding, topPadding, chartWidth, chartHeight, minValue, Math.max(maxValue - minValue, 1))
       }
       
       // 执行绘制
       ctx.draw()
     },
 
-    drawGrid(ctx, padding, topPadding, chartWidth, chartHeight) {
+    drawGrid(ctx, leftPadding, topPadding, chartWidth, chartHeight) {
       // 网格线 - Longbridge风格
       ctx.setStrokeStyle('rgba(0, 0, 0, 0.05)')
       ctx.setLineWidth(1)
@@ -111,8 +113,8 @@ Component({
       for (let i = 1; i < 4; i++) {
         const y = topPadding + (i / 4) * chartHeight
         ctx.beginPath()
-        ctx.moveTo(padding, y)
-        ctx.lineTo(padding + chartWidth, y)
+        ctx.moveTo(leftPadding, y)
+        ctx.lineTo(leftPadding + chartWidth, y)
         ctx.stroke()
       }
       
@@ -120,13 +122,13 @@ Component({
       ctx.setStrokeStyle('rgba(0, 194, 255, 0.2)')
       ctx.setLineWidth(1)
       ctx.beginPath()
-      ctx.moveTo(padding, topPadding)
-      ctx.lineTo(padding, topPadding + chartHeight)
-      ctx.lineTo(padding + chartWidth, topPadding + chartHeight)
+      ctx.moveTo(leftPadding, topPadding)
+      ctx.lineTo(leftPadding, topPadding + chartHeight)
+      ctx.lineTo(leftPadding + chartWidth, topPadding + chartHeight)
       ctx.stroke()
     },
 
-    drawArea(ctx, data, padding, topPadding, chartWidth, chartHeight, minValue, valueRange) {
+    drawArea(ctx, data, leftPadding, topPadding, chartWidth, chartHeight, minValue, valueRange) {
       if (data.length < 2) return
       
       // 创建渐变色 - Longbridge风格
@@ -140,7 +142,7 @@ Component({
       
       // 绘制面积路径
       data.forEach((value, index) => {
-        const x = padding + (index / (data.length - 1)) * chartWidth
+        const x = leftPadding + (index / (data.length - 1)) * chartWidth
         const y = topPadding + chartHeight - ((value - minValue) / valueRange) * chartHeight
         
         if (index === 0) {
@@ -151,15 +153,15 @@ Component({
       })
       
       // 闭合到x轴
-      const lastX = padding + chartWidth
+      const lastX = leftPadding + chartWidth
       const baseY = topPadding + chartHeight
       ctx.lineTo(lastX, baseY)
-      ctx.lineTo(padding, baseY)
+      ctx.lineTo(leftPadding, baseY)
       ctx.closePath()
       ctx.fill()
     },
 
-    drawLine(ctx, data, padding, topPadding, chartWidth, chartHeight, minValue, valueRange) {
+    drawLine(ctx, data, leftPadding, topPadding, chartWidth, chartHeight, minValue, valueRange) {
       if (data.length < 2) return
       
       // 主线条 - Longbridge风格
@@ -170,7 +172,7 @@ Component({
       ctx.beginPath()
 
       data.forEach((value, index) => {
-        const x = padding + (index / (data.length - 1)) * chartWidth
+        const x = leftPadding + (index / (data.length - 1)) * chartWidth
         const y = topPadding + chartHeight - ((value - minValue) / valueRange) * chartHeight
         
         if (index === 0) {
@@ -183,7 +185,7 @@ Component({
       ctx.stroke()
     },
 
-    drawLabels(ctx, data, xData, padding, topPadding, chartWidth, chartHeight, minValue, maxValue) {
+    drawLabels(ctx, data, xData, leftPadding, topPadding, chartWidth, chartHeight, minValue, maxValue) {
       ctx.setFillStyle('#9CA3AF')
       ctx.setFontSize(11)
       
@@ -194,36 +196,41 @@ Component({
         const value = minValue + (maxValue - minValue) * (i / 3)
         const y = topPadding + chartHeight - (i / 3) * chartHeight
         const label = this.formatValue(value)
-        ctx.fillText(label, padding - 8, y)
+        ctx.fillText(label, leftPadding - 8, y)
       }
 
       // X轴标签 - 只显示起始和结束时间
       if (xData && xData.length > 0) {
-        ctx.setTextAlign('center')
         ctx.setTextBaseline('top')
         
-        // 起始时间
-        const startX = padding
+        // 起始时间 - 左对齐
         const startDateStr = xData[0]
         const startDate = new Date(startDateStr)
         if (!isNaN(startDate.getTime())) {
-          const startLabel = startDate.toISOString().split('T')[0] // YYYY-MM-DD格式
-          ctx.fillText(startLabel, startX, topPadding + chartHeight + 8)
+          ctx.setTextAlign('left')
+          // 简化日期格式，只显示年-月-日
+          const startLabel = startDate.getFullYear() + '-' + 
+                            String(startDate.getMonth() + 1).padStart(2, '0') + '-' +
+                            String(startDate.getDate()).padStart(2, '0')
+          ctx.fillText(startLabel, leftPadding, topPadding + chartHeight + 8)
         }
         
-        // 结束时间
-        const endX = padding + chartWidth
+        // 结束时间 - 右对齐
         const endDateStr = xData[xData.length - 1]
         const endDate = new Date(endDateStr)
         if (!isNaN(endDate.getTime())) {
-          const endLabel = endDate.toISOString().split('T')[0] // YYYY-MM-DD格式
-          ctx.fillText(endLabel, endX, topPadding + chartHeight + 8)
+          ctx.setTextAlign('right')
+          // 简化日期格式，只显示年-月-日
+          const endLabel = endDate.getFullYear() + '-' + 
+                          String(endDate.getMonth() + 1).padStart(2, '0') + '-' +
+                          String(endDate.getDate()).padStart(2, '0')
+          ctx.fillText(endLabel, leftPadding + chartWidth, topPadding + chartHeight + 8)
         }
       }
     },
 
     // 绘制信息面板
-    drawInfoPanel(ctx, data, xData, padding, topPadding, chartWidth, chartHeight, minValue, maxValue) {
+    drawInfoPanel(ctx, data, xData, leftPadding, topPadding, chartWidth, chartHeight, minValue, maxValue) {
       if (!data || data.length === 0 || this.data.hoveredIndex === -1) return
       
       // 获取悬停点的数据
@@ -248,7 +255,7 @@ Component({
           ctx.setFillStyle('#6B7280')
           ctx.setFontSize(12)
           const dateLabel = date.toISOString().split('T')[0]
-          ctx.fillText(dateLabel, padding, yOffset)
+          ctx.fillText(dateLabel, leftPadding, yOffset)
           yOffset += 25
         }
       }
@@ -256,29 +263,29 @@ Component({
       // 显示市值标签和数值
       ctx.setFillStyle('#374151')
       ctx.setFontSize(13)
-      ctx.fillText('市值', padding, yOffset)
+      ctx.fillText('市值', leftPadding, yOffset)
       
       ctx.setFillStyle('#00C2FF')
       ctx.setFontSize(16)
-      ctx.fillText(this.formatValue(hoveredValue), padding + 60, yOffset)
+      ctx.fillText(this.formatValue(hoveredValue), leftPadding + 60, yOffset)
       yOffset += 25
       
       // 显示分位值
       ctx.setFillStyle('#374151')
       ctx.setFontSize(13)
-      ctx.fillText('分位值', padding, yOffset)
+      ctx.fillText('分位值', leftPadding, yOffset)
       
       ctx.setFillStyle('#6B7280')
       ctx.setFontSize(16)
-      ctx.fillText(percentile, padding + 60, yOffset)
+      ctx.fillText(percentile, leftPadding + 60, yOffset)
     },
 
     // 绘制悬停指示器
-    drawHoverIndicator(ctx, data, padding, topPadding, chartWidth, chartHeight, minValue, valueRange) {
+    drawHoverIndicator(ctx, data, leftPadding, topPadding, chartWidth, chartHeight, minValue, valueRange) {
       if (this.data.hoveredIndex === -1 || !data || data.length === 0) return
       
       const hoveredValue = data[this.data.hoveredIndex]
-      const x = padding + (this.data.hoveredIndex / (data.length - 1)) * chartWidth
+      const x = leftPadding + (this.data.hoveredIndex / (data.length - 1)) * chartWidth
       const y = topPadding + chartHeight - ((hoveredValue - minValue) / valueRange) * chartHeight
       
       // 绘制垂直参考线
@@ -307,8 +314,18 @@ Component({
       // 由于canvas组件的限制，我们需要在父组件中处理触摸事件
     },
 
+    // 处理触摸开始
+    onTouchStart(e) {
+      this.handleTouch(e)
+    },
+
     // 处理触摸移动
     onTouchMove(e) {
+      this.handleTouch(e)
+    },
+
+    // 统一处理触摸事件
+    handleTouch(e) {
       const { data, width } = this.properties
       if (!data || data.length === 0) return
       
@@ -316,9 +333,10 @@ Component({
       const x = touch.x
       
       // 计算触摸点对应的数据索引
-      const padding = 40
-      const chartWidth = width - padding * 2
-      const relativeX = x - padding
+      const leftPadding = 45
+      const rightPadding = 20
+      const chartWidth = width - leftPadding - rightPadding
+      const relativeX = x - leftPadding
       
       if (relativeX >= 0 && relativeX <= chartWidth) {
         const index = Math.round((relativeX / chartWidth) * (data.length - 1))
@@ -367,11 +385,11 @@ Component({
       if (typeof value !== 'number' || isNaN(value)) return '0'
       
       if (value >= 1000000000000) {
-        return (value / 1000000000000).toFixed(1) + '万亿'
+        return (value / 1000000000000).toFixed(1) + '万'
       } else if (value >= 100000000) {
-        return (value / 100000000).toFixed(1) + '亿'
+        return (value / 100000000).toFixed(1)
       } else if (value >= 10000) {
-        return (value / 10000).toFixed(1) + '万'
+        return (value / 10000).toFixed(1)
       } else {
         return value.toFixed(0)
       }

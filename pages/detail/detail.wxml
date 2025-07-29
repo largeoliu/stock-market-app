@@ -29,7 +29,7 @@
     <view class="period-selector card">
       <!-- 当前市值 -->
       <view class="current-market-cap">
-        <view class="market-cap-label">当前市值</view>
+        <view class="market-cap-label">当前市值（亿）</view>
         <view class="market-cap-value">{{stats.currentMarketCapFormatted}}</view>
       </view>
       
@@ -79,8 +79,8 @@
         <simple-chart 
           data="{{ chartData }}"
           x-data="{{ chartXData }}"
-          width="300"
-          height="200"
+          width="380"
+          height="250"
         ></simple-chart>
       </view>
     </view>

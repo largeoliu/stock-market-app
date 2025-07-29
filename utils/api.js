@@ -315,9 +315,9 @@ class StockAPI {
   // 格式化市值显示（统一使用亿为单位）
   formatMarketCap(value) {
     if (value >= 10000) {
-      return (value / 10000).toFixed(2) + '万亿'
+      return (value / 10000).toFixed(2) + '万'
     } else {
-      return value.toFixed(2) + '亿'
+      return value.toFixed(2)
     }
   }
 
