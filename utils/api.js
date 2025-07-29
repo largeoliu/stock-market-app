@@ -65,12 +65,17 @@ class StockAPI {
   // 获取股票历史数据
   async getStockHistory(symbol, period = '1y') {
     try {
-      // 使用微信云托管market_cap接口，传递symbol参数
+      // 使用微信云托管market_cap接口，获取所有历史数据
       console.log('正在获取股票历史数据:', symbol, period);
       const result = await this.requestMarketCap(symbol);
-      const formattedResult = this.formatHistoryData(result);
-      console.log('获取到的数据:', formattedResult.length, '个数据点');
-      return formattedResult;
+      const allData = this.formatHistoryData(result);
+      console.log('获取到的全部数据:', allData.length, '个数据点');
+      
+      // 根据时间范围过滤数据
+      const filteredData = this.filterDataByPeriod(allData, period);
+      console.log('过滤后的数据:', filteredData.length, '个数据点');
+      
+      return filteredData;
     } catch (error) {
       console.error('获取历史数据失败:', error);
       // 返回模拟数据
@@ -82,7 +87,31 @@ class StockAPI {
 
   // 格式化历史数据
   formatHistoryData(data) {
-    // 处理各种可能的返回格式
+    console.log('开始格式化数据:', data);
+    
+    // 新格式: 数组包含对象，每个对象有 date 和 market_cap 字段
+    if (Array.isArray(data) && data.length > 0 && data[0].date && data[0].market_cap) {
+      console.log('检测到新的API数据格式');
+      
+      const marketCapData = data.map(item => {
+        const marketCapInYi = parseFloat(item.market_cap);
+        
+        return {
+          date: item.date,
+          marketCap: marketCapInYi, // 亿为单位
+          price: marketCapInYi / 10, // 简化的股价计算
+          volume: Math.floor(Math.random() * 1000000000) // 随机生成交易量
+        };
+      });
+      
+      // 按日期排序
+      marketCapData.sort((a, b) => new Date(a.date) - new Date(b.date));
+      console.log('格式化完成，数据点数量:', marketCapData.length);
+      
+      return marketCapData;
+    }
+    
+    // 兼容旧格式的处理逻辑
     let marketCapArray = null;
     
     // 格式1: [number, [string, string, ...]]
@@ -107,8 +136,7 @@ class StockAPI {
       return [];
     }
     
-    // 根据新的返回格式处理数据
-    // marketCapArray 是一个包含市值的数组，单位是亿
+    // 兼容旧格式的处理
     const now = new Date();
     const marketCapData = [];
     
@@ -130,6 +158,45 @@ class StockAPI {
     });
     
     return marketCapData;
+  }
+
+  // 根据时间范围过滤数据
+  filterDataByPeriod(data, period) {
+    if (!data || data.length === 0) return data;
+    
+    const now = new Date();
+    let cutoffDate;
+    
+    switch (period) {
+      case '1y':
+        cutoffDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        break;
+      case '3y':
+        cutoffDate = new Date(now.getFullYear() - 3, now.getMonth(), now.getDate());
+        break;
+      case '5y':
+        cutoffDate = new Date(now.getFullYear() - 5, now.getMonth(), now.getDate());
+        break;
+      case '10y':
+        cutoffDate = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
+        break;
+      case 'max':
+        // 返回所有数据
+        return data;
+      default:
+        // 默认1年
+        cutoffDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    }
+    
+    // 过滤出指定时间范围内的数据
+    const filteredData = data.filter(item => {
+      const itemDate = new Date(item.date);
+      return itemDate >= cutoffDate;
+    });
+    
+    console.log(`时间范围 ${period}: 从 ${cutoffDate.toISOString().split('T')[0]} 到现在`);
+    
+    return filteredData;
   }
 
   // 模拟搜索数据（用于演示）
