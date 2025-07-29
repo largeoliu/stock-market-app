@@ -185,7 +185,7 @@
   display: flex;
   background: #F5F7FA;
   border-radius: 32rpx;
-  padding: 8rpx;
+  padding: 6rpx;
   box-shadow: inset 0 2rpx 4rpx rgba(0, 0, 0, 0.06);
   border: 1rpx solid #E5E8EB;
   /* 确保布局稳定 */
@@ -196,8 +196,8 @@
 /* 滑动指示器 */
 .period-selector-indicator {
   position: absolute;
-  top: 8rpx;
-  bottom: 8rpx;
+  top: 6rpx;
+  bottom: 6rpx;
   background: linear-gradient(135deg, #00C2FF 0%, #0081FF 100%);
   border-radius: 24rpx;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

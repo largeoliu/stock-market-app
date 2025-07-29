@@ -10,7 +10,8 @@ Page({
     loading: false,
     showResults: false,
     hotStocks: [],
-    hotStocksLoading: true
+    hotStocksLoading: true,
+    currentTab: 'hot' // 默认显示热门搜索
   },
 
   onLoad() {
@@ -65,6 +66,18 @@ Page({
       })
       // 不显示错误提示，静默失败
     }
+  },
+
+  // 标签页切换
+  onTabChange(e) {
+    const tab = e.currentTarget.dataset.tab
+    this.setData({ currentTab: tab })
+    
+    // 触觉反馈
+    wx.vibrateShort({
+      type: 'light',
+      fail: () => {}
+    })
   },
 
   // 输入框变化

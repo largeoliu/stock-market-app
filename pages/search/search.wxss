@@ -134,6 +134,73 @@
   padding: 20rpx;
 }
 
+/* 标签页 */
+.tab-container {
+  margin-bottom: 40rpx;
+}
+
+.tab-header {
+  display: flex;
+  background: white;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 20rpx;
+  overflow: hidden;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 32rpx 20rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #666;
+  background: white;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.tab-item.active {
+  color: #1296db;
+  background: linear-gradient(135deg, rgba(18, 150, 219, 0.1) 0%, rgba(18, 150, 219, 0.05) 100%);
+  font-weight: 600;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 6rpx;
+  background: #1296db;
+  border-radius: 3rpx;
+}
+
+.tab-item:active {
+  transform: scale(0.98);
+}
+
+.tab-content {
+  min-height: 400rpx;
+}
+
+.tab-panel {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .section {
   margin-bottom: 40rpx;
 }
@@ -224,6 +291,38 @@
 .hot-stock-change {
   font-size: 26rpx;
   font-weight: 600;
+}
+
+/* 最近搜索头部 */
+.recent-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20rpx;
+}
+
+/* 空状态 */
+.empty-recent {
+  text-align: center;
+  padding: 120rpx 40rpx;
+}
+
+.empty-recent .empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 30rpx;
+  display: block;
+}
+
+.empty-recent .empty-text {
+  display: block;
+  font-size: 32rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+}
+
+.empty-recent .empty-tip {
+  display: block;
+  font-size: 28rpx;
+  color: #999;
 }
 
 /* 最近搜索 */

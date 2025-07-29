@@ -166,12 +166,12 @@ Page({
         const pxToRpx = 750 / systemInfo.windowWidth
         
         const totalItems = this.data.periods.length
-        const trackPadding = 8 // track的padding
+        const trackPadding = 4 // track的padding，减少到4px，单位px
         
         const availableWidth = rect.width - (trackPadding * 2)
         const itemWidth = availableWidth / totalItems
-        const indicatorWidth = itemWidth
-        const indicatorPosition = activeIndex * itemWidth + trackPadding
+        const indicatorWidth = itemWidth - 4 // 指示器宽度稍微小一点，留出边距
+        const indicatorPosition = activeIndex * itemWidth + trackPadding + 2 // 向右偏移2px
         
         this.setData({
           indicatorWidth: indicatorWidth * pxToRpx,
@@ -190,12 +190,12 @@ Page({
         const pxToRpx = 750 / systemInfo.windowWidth
         
         const totalItems = this.data.periods.length
-        const trackPadding = 8 // track的padding
+        const trackPadding = 4 // track的padding，减少到4px，单位px
         
         const availableWidth = rect.width - (trackPadding * 2)
         const itemWidth = availableWidth / totalItems
-        const indicatorWidth = itemWidth
-        const indicatorPosition = activeIndex * itemWidth + trackPadding
+        const indicatorWidth = itemWidth - 4 // 指示器宽度稍微小一点，留出边距
+        const indicatorPosition = activeIndex * itemWidth + trackPadding + 2 // 向右偏移2px
         
         this.setData({
           indicatorWidth: indicatorWidth * pxToRpx,
