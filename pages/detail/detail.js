@@ -19,8 +19,8 @@ Page({
       { key: 'max', label: '全部', active: false }
     ],
     // 滑动指示器位置和宽度（初始值基于5个等分的估算）
-    indicatorPosition: 8, // 初始在第一个位置，加上track的padding
-    indicatorWidth: 120, // 大概的宽度，会在页面渲染后重新计算
+    indicatorPosition: 0, // 初始在第一个位置，完全贴合左边
+    indicatorWidth: 130, // 大概的宽度，会在页面渲染后重新计算
     historyData: [],
     loading: true,
     chartLoading: false,
@@ -227,12 +227,14 @@ Page({
         const pxToRpx = 750 / systemInfo.windowWidth
         
         const totalItems = this.data.periods.length
-        const trackPadding = 4 // track的padding，减少到4px，单位px
+        const trackPadding = 6 // track的padding，单位px
         
         const availableWidth = rect.width - (trackPadding * 2)
         const itemWidth = availableWidth / totalItems
-        const indicatorWidth = itemWidth - 4 // 指示器宽度稍微小一点，留出边距
-        const indicatorPosition = activeIndex * itemWidth + trackPadding + 2 // 向右偏移2px
+        const indicatorWidth = itemWidth // 指示器宽度与item宽度一致
+        
+        // 第一个按钮完全贴合左边，其他按钮按比例计算
+        const indicatorPosition = activeIndex === 0 ? 0 : activeIndex * itemWidth + trackPadding
         
         this.setData({
           indicatorWidth: indicatorWidth * pxToRpx,
@@ -251,12 +253,14 @@ Page({
         const pxToRpx = 750 / systemInfo.windowWidth
         
         const totalItems = this.data.periods.length
-        const trackPadding = 4 // track的padding，减少到4px，单位px
+        const trackPadding = 6 // track的padding，单位px
         
         const availableWidth = rect.width - (trackPadding * 2)
         const itemWidth = availableWidth / totalItems
-        const indicatorWidth = itemWidth - 4 // 指示器宽度稍微小一点，留出边距
-        const indicatorPosition = activeIndex * itemWidth + trackPadding + 2 // 向右偏移2px
+        const indicatorWidth = itemWidth // 指示器宽度与item宽度一致
+        
+        // 第一个按钮完全贴合左边，其他按钮按比例计算
+        const indicatorPosition = activeIndex === 0 ? 0 : activeIndex * itemWidth + trackPadding
         
         this.setData({
           indicatorWidth: indicatorWidth * pxToRpx,
