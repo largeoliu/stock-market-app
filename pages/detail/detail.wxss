@@ -246,7 +246,7 @@
 /* 图表区域 */
 .chart-section {
   padding: 24rpx 0; /* 移除左右padding，实现全屏宽度 */
-  margin-bottom: 0;
+  margin-bottom: 24rpx; /* 增加底部间距，避免与下方内容重叠 */
   background: linear-gradient(135deg, rgba(0, 194, 255, 0.02) 0%, rgba(0, 129, 255, 0.005) 100%);
   border: none;
 }
@@ -289,7 +289,7 @@ ec-canvas {
 
 /* 稳定股东信息 */
 .stable-shareholders-section {
-  padding: 40rpx 32rpx;
+  padding: 60rpx 32rpx 40rpx 32rpx; /* 增加顶部padding避免标题被遮挡 */
   margin-bottom: 24rpx;
 }
 
