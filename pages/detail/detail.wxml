@@ -16,11 +16,11 @@
       </view>
       <view class="stock-actions">
         <button 
-          class="action-btn {{isFavorite() ? 'favorited' : ''}}"
+          class="action-btn {{isFavorited ? 'favorited' : ''}}"
           bindtap="onToggleFavorite"
         >
-          <text class="action-icon">{{isFavorite() ? '❤️' : '🤍'}}</text>
-          {{isFavorite() ? '已收藏' : '收藏'}}
+          <text class="action-icon">{{isFavorited ? '❤️' : '🤍'}}</text>
+          {{isFavorited ? '已收藏' : '收藏'}}
         </button>
       </view>
     </view>

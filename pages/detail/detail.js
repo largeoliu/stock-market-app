@@ -9,6 +9,7 @@ Page({
       name: '',
       market: ''
     },
+    isFavorited: false, // 收藏状态
     currentPeriod: '1y', // 当前选择的时间范围
     periods: [
       { key: '1y', label: '1年', active: true },
@@ -65,6 +66,7 @@ Page({
 
     this.loadStockData()
     this.loadStableShareholders()
+    this.updateFavoriteState()
   },
 
   onReady() {
@@ -79,6 +81,9 @@ Page({
     setTimeout(() => {
       this.calculateIndicatorPosition()
     }, 50)
+    
+    // 更新收藏状态，以防从其他页面返回时状态发生变化
+    this.updateFavoriteState()
   },
 
   // 加载股票数据
@@ -354,9 +359,23 @@ Page({
     
     app.globalData.favoriteStocks = favoriteStocks
     util.setStorage('favorite_stocks', favoriteStocks)
+    
+    // 更新页面收藏状态
+    this.updateFavoriteState()
   },
 
-  // 检查是否已收藏
+  // 更新收藏状态
+  updateFavoriteState() {
+    const app = getApp()
+    const favoriteStocks = app.globalData.favoriteStocks || []
+    const isFavorited = favoriteStocks.some(item => item.symbol === this.data.stock.symbol)
+    
+    this.setData({
+      isFavorited: isFavorited
+    })
+  },
+
+  // 检查是否已收藏（保留兼容性）
   isFavorite() {
     const app = getApp()
     const favoriteStocks = app.globalData.favoriteStocks || []

@@ -1,6 +1,11 @@
 App({
   onLaunch() {
     wx.cloud.init()
+    
+    // 加载收藏的股票数据
+    const favoriteStocks = wx.getStorageSync('favorite_stocks') || []
+    this.globalData.favoriteStocks = favoriteStocks
+    
     // 展示本地存储能力
     const logs = wx.getStorageSync('logs') || []
     logs.unshift(Date.now())
