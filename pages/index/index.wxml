@@ -48,7 +48,7 @@
       >
         <view class="stock-info">
           <view class="stock-name">{{item.name}}</view>
-          <view class="stock-code">{{item.symbol}} · {{item.market}}</view>
+          <view class="stock-code">{{item.symbol}}</view>
         </view>
         <view wx:if="{{item.price}}" class="stock-price">
           <view class="price">¥{{item.price}}</view>
@@ -103,6 +103,14 @@
           <view wx:if="{{hotStocksLoading}}" class="hot-stocks-loading">
             <loading size="mini"></loading>
             <text class="loading-text-small">加载中...</text>
+          </view>
+          
+          <!-- 加载失败状态 -->
+          <view wx:elif="{{hotStocksLoadFailed && hotStocks.length === 0}}" class="hot-stocks-error">
+            <text class="error-icon">📡</text>
+            <text class="error-text">加载失败</text>
+            <text class="error-tip">网络不给力，点击重试</text>
+            <button class="retry-btn" bindtap="retryLoadHotStocks">重试</button>
           </view>
           
           <!-- 热门股票列表 -->

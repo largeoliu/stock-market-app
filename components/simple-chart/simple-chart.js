@@ -66,7 +66,7 @@ Component({
       ctx.fillRect(0, 0, width, height)
       
       // 计算绘图区域 - 为信息面板留出空间
-      const leftPadding = 45 // 为Y轴标签留出足够空间
+      const leftPadding = 30 // 减少左边留白
       const rightPadding = 20
       const topPadding = 50 // 为信息面板留出更多空间
       const bottomPadding = 20
@@ -386,11 +386,14 @@ Component({
       
       let result
       if (value >= 1000000000000) {
+        // 万亿级别：1.8万亿 -> 1.8万
         result = (value / 1000000000000).toFixed(1) + '万'
       } else if (value >= 100000000) {
-        result = (value / 100000000).toFixed(1)
+        // 亿级别：1.8亿 -> 1.8亿
+        result = (value / 100000000).toFixed(1) + '亿'
       } else if (value >= 10000) {
-        result = (value / 10000).toFixed(1)
+        // 万级别：1.8万 -> 1.8万
+        result = (value / 10000).toFixed(1) + '万'
       } else {
         result = value.toFixed(0)
       }

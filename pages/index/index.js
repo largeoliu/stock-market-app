@@ -12,6 +12,7 @@ Page({
     showResults: false,
     hotStocks: [],
     hotStocksLoading: true,
+    hotStocksLoadFailed: false, // 热门搜索是否加载失败
     currentTab: 'hot', // 默认显示热门搜索
     safeAreaTop: 0 // 安全区域顶部高度
   },
@@ -55,7 +56,8 @@ Page({
         
         this.setData({ 
           hotStocks: response.results,
-          hotStocksLoading: false 
+          hotStocksLoading: false,
+          hotStocksLoadFailed: false // 成功加载后重置失败状态
         })
       } else {
         throw new Error('数据格式错误')
@@ -64,10 +66,17 @@ Page({
       console.error('加载热门股票失败:', error)
       this.setData({ 
         hotStocksLoading: false,
+        hotStocksLoadFailed: true, // 标记加载失败
         hotStocks: [] // 设置为空数组，避免显示错误
       })
       // 不显示错误提示，静默失败
     }
+  },
+
+  // 重试加载热门搜索
+  retryLoadHotStocks() {
+    console.log('用户手动重试热门搜索')
+    this.loadHotStocks()
   },
 
   // 标签页切换
@@ -80,6 +89,12 @@ Page({
       type: 'light',
       fail: () => {}
     })
+
+    // 如果切换到热门搜索，且之前加载失败或没有数据，则重新加载
+    if (tab === 'hot' && (this.data.hotStocksLoadFailed || this.data.hotStocks.length === 0)) {
+      console.log('重新加载热门搜索数据')
+      this.loadHotStocks()
+    }
   },
 
   // 输入框变化
