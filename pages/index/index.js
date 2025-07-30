@@ -229,8 +229,17 @@ Page({
     try {
       const favoriteStocks = util.getStorage('favorite_stocks', [])
       
+      // 按收藏时间倒序排序（最新收藏的在前面）
+      const sortedStocks = favoriteStocks.sort((a, b) => {
+        const timeA = a.timestamp || 0
+        const timeB = b.timestamp || 0
+        return timeB - timeA // 倒序排列
+      })
+      
+      console.log('收藏列表排序后:', sortedStocks.map(s => ({ name: s.name, time: s.timestamp })))
+      
       // 格式化时间显示
-      const formattedStocks = favoriteStocks.map(stock => ({
+      const formattedStocks = sortedStocks.map(stock => ({
         ...stock,
         formatTime: stock.timestamp ? new Date(stock.timestamp).toLocaleDateString() : '--'
       }))
@@ -273,20 +282,22 @@ Page({
 
   // 删除收藏项
   removeFavoriteItem(index) {
-    const favoriteStocks = [...this.data.favoriteStocks]
-    favoriteStocks.splice(index, 1)
+    // 从存储中获取原始数据
+    const storedFavorites = util.getStorage('favorite_stocks', [])
+    const sortedStored = storedFavorites.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+    
+    // 删除指定项
+    sortedStored.splice(index, 1)
     
     // 更新存储
-    util.setStorage('favorite_stocks', favoriteStocks)
+    util.setStorage('favorite_stocks', sortedStored)
     
     // 更新全局数据
     const app = getApp()
-    app.globalData.favoriteStocks = favoriteStocks
+    app.globalData.favoriteStocks = sortedStored
     
-    // 更新页面
-    this.setData({
-      favoriteStocks: favoriteStocks
-    })
+    // 重新加载收藏列表
+    this.loadFavorites()
     
     util.showToast('已取消收藏', 'success')
   },
