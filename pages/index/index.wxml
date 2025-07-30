@@ -117,9 +117,13 @@
               <view class="hot-stock-rank">{{item.rank}}</view>
               <view class="hot-stock-info">
                 <text class="hot-stock-name">{{item.name}}</text>
-                <text class="hot-stock-change {{item.changePercent && item.changePercent.indexOf('-') === 0 ? 'text-danger' : 'text-success'}}">
-                  {{item.changePercent || '--'}}
+                <text 
+                  wx:if="{{item.changePercent}}" 
+                  class="hot-stock-change {{item.changePercent.indexOf('-') === 0 ? 'text-danger' : 'text-success'}}"
+                >
+                  {{item.changePercent}}
                 </text>
+                <text wx:else class="hot-stock-code">{{item.symbol}}</text>
               </view>
             </view>
           </view>

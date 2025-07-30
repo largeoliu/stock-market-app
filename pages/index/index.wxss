@@ -325,6 +325,12 @@
   font-weight: 600;
 }
 
+.hot-stock-code {
+  font-size: 24rpx;
+  color: #999;
+  font-weight: 400;
+}
+
 /* 最近搜索头部 */
 .recent-header {
   display: flex;

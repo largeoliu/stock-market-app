@@ -139,32 +139,52 @@ class StockAPI {
 
   /**
    * 格式化热门搜索数据
-   * @param {Object} rawData - 原始热门搜索数据
+   * @param {Array|Object} rawData - 原始热门搜索数据
    * @returns {Object} 格式化后的热门搜索数据
    */
   formatHotSearchData(rawData) {
     console.log('formatHotSearchData: 原始数据', rawData)
     
-    if (!rawData || !rawData.results) {
-      return { results: [] }
+    // 处理新的API格式：直接返回数组
+    if (Array.isArray(rawData)) {
+      const formattedResults = rawData.map((item, index) => ({
+        name: item.name,
+        rank: index + 1, // 按顺序设置排名
+        changePercent: item.change_percent || '', // 新格式可能没有涨跌幅
+        heatScore: item.heat_score || 0,
+        symbol: item.code || item.symbol || item.stock_code, // 使用code字段作为主要股票代码
+        market: item.market || 'A股'
+      }))
+
+      console.log('formatHotSearchData: 格式化后数据', formattedResults.slice(0, 3))
+
+      return {
+        results: formattedResults
+      }
+    }
+    
+    // 兼容旧的API格式：包含results字段的对象
+    if (rawData && rawData.results) {
+      const formattedResults = rawData.results.map((item, index) => ({
+        name: item.name,
+        rank: item.rank || index + 1,
+        changePercent: item.change_percent,
+        heatScore: item.heat_score,
+        symbol: item.symbol || item.code || item.stock_code || item.stock_symbol,
+        market: item.market || 'A股'
+      }))
+
+      console.log('formatHotSearchData: 格式化后数据（旧格式）', formattedResults.slice(0, 3))
+
+      return {
+        ...rawData,
+        results: formattedResults
+      }
     }
 
-    const formattedResults = rawData.results.map((item, index) => ({
-      name: item.name,
-      rank: item.rank || index + 1,
-      changePercent: item.change_percent,
-      heatScore: item.heat_score,
-      // 尝试从多个可能的字段获取股票代码
-      symbol: item.symbol || item.code || item.stock_code || item.stock_symbol,
-      market: item.market || 'A股'
-    }))
-
-    console.log('formatHotSearchData: 格式化后数据', formattedResults.slice(0, 3))
-
-    return {
-      ...rawData,
-      results: formattedResults
-    }
+    // 如果数据格式不匹配，返回空结果
+    console.log('formatHotSearchData: 未识别的数据格式')
+    return { results: [] }
   }
 
   /**
