@@ -37,6 +37,13 @@ Page({
       avgMarketCap: 0,
       changePercent: 0,
       totalChange: 0
+    },
+    
+    // 稳定股东信息
+    stableShareholders: {
+      loading: false,
+      data: null,
+      error: false
     }
   },
 
@@ -57,6 +64,7 @@ Page({
     })
 
     this.loadStockData()
+    this.loadStableShareholders()
   },
 
   onReady() {
@@ -83,11 +91,16 @@ Page({
         this.data.currentPeriod
       )
       
+      console.log('获取到的历史数据:', historyData)
+      console.log('数据长度:', historyData.length)
+      
       // 格式化历史数据显示
       const formattedHistoryData = historyData.map(item => ({
         ...item,
         marketCapFormatted: stockAPI.formatMarketCap(item.marketCap)
       }))
+      
+      console.log('格式化后的数据:', formattedHistoryData.slice(0, 3))
       
       this.setData({
         historyData: formattedHistoryData,
@@ -113,32 +126,75 @@ Page({
 
   // 计算统计信息
   calculateStats(data) {
-    if (!data || data.length === 0) return
+    if (!data || data.length === 0) {
+      console.log('calculateStats: 没有数据')
+      return
+    }
 
+    console.log('calculateStats: 开始计算统计信息，数据长度:', data.length)
+    
     const marketCaps = data.map(item => item.marketCap)
     const currentMarketCap = marketCaps[marketCaps.length - 1]
-    const firstMarketCap = marketCaps[0]
     const maxMarketCap = Math.max(...marketCaps)
     const minMarketCap = Math.min(...marketCaps)
     const avgMarketCap = marketCaps.reduce((sum, val) => sum + val, 0) / marketCaps.length
     
-    const totalChange = currentMarketCap - firstMarketCap
-    const changePercent = ((currentMarketCap - firstMarketCap) / firstMarketCap) * 100
+    console.log('市值数据:', {
+      currentMarketCap,
+      maxMarketCap,
+      minMarketCap,
+      avgMarketCap
+    })
+    
+    // 计算当前市值分位（当前值在历史数据中的百分位）
+    const sortedMarketCaps = [...marketCaps].sort((a, b) => a - b)
+    const currentIndex = sortedMarketCaps.findIndex(val => val >= currentMarketCap)
+    const percentile = ((currentIndex / (sortedMarketCaps.length - 1)) * 100).toFixed(1)
+
+    console.log('计算的分位数:', percentile)
+
+    const statsData = {
+      currentMarketCap,
+      maxMarketCap,
+      minMarketCap,
+      avgMarketCap: Math.floor(avgMarketCap),
+      percentile: percentile, // 替换changePercent
+      // 格式化显示的值
+      currentMarketCapFormatted: stockAPI.formatMarketCap(currentMarketCap),
+      maxMarketCapFormatted: stockAPI.formatMarketCap(maxMarketCap),
+      minMarketCapFormatted: stockAPI.formatMarketCap(minMarketCap)
+    }
+    
+    console.log('格式化后的统计数据:', statsData)
 
     this.setData({
-      stats: {
-        currentMarketCap,
-        maxMarketCap,
-        minMarketCap,
-        avgMarketCap: Math.floor(avgMarketCap),
-        changePercent: changePercent.toFixed(2),
-        totalChange,
-        // 格式化显示的值
-        currentMarketCapFormatted: stockAPI.formatMarketCap(currentMarketCap),
-        maxMarketCapFormatted: stockAPI.formatMarketCap(maxMarketCap),
-        minMarketCapFormatted: stockAPI.formatMarketCap(minMarketCap)
-      }
+      stats: statsData
     })
+  },
+
+  // 加载稳定股东数据
+  async loadStableShareholders() {
+    try {
+      this.setData({
+        'stableShareholders.loading': true,
+        'stableShareholders.error': false
+      })
+      
+      const shareholdersData = await stockAPI.getStableShareholders(this.data.stock.symbol)
+      console.log('稳定股东数据:', shareholdersData)
+      
+      this.setData({
+        'stableShareholders.data': shareholdersData,
+        'stableShareholders.loading': false
+      })
+    } catch (error) {
+      console.error('加载稳定股东数据失败:', error)
+      this.setData({
+        'stableShareholders.loading': false,
+        'stableShareholders.error': true
+      })
+      // 不显示错误提示，静默失败
+    }
   },
 
   // 更新图表

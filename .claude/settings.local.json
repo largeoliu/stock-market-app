@@ -5,7 +5,8 @@
       "Bash(rm:*)",
       "Bash(grep:*)",
       "Bash(git commit:*)",
-      "WebFetch(domain:longbridge.com)"
+      "WebFetch(domain:longbridge.com)",
+      "Bash(find:*)"
     ],
     "deny": []
   }

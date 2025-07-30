@@ -1,33 +1,51 @@
-// API 工具类
+// API工具类 - 重构版本
 const util = require('./util.js')
 
+/**
+ * 股票API服务类
+ * 提供统一的API接口调用和数据处理功能
+ */
 class StockAPI {
   constructor() {
     this.timeout = 15000
     this.maxRetries = 2
+    this.baseConfig = {
+      env: "prod-1gs83ryma8b2a51f",
+      service: "test"
+    }
   }
 
-  // 封装微信云托管stock_data请求
-  async requestStockData(symbol, indicator = '总市值', period = '近一年', retryCount = 0) {
+  /**
+   * 通用API请求方法
+   * @param {string} path - API路径
+   * @param {Object} params - 请求参数
+   * @param {number} retryCount - 重试次数
+   * @returns {Promise} API响应数据
+   */
+  async request(path, params = {}, retryCount = 0) {
     try {
-      // 处理股票代码格式，去掉市场后缀（如 .SZ, .HK 等）
-      const cleanSymbol = symbol.split('.')[0];
-      const path = `/stock_data?symbol=${encodeURIComponent(cleanSymbol)}&indicator=${encodeURIComponent(indicator)}&period=${encodeURIComponent(period)}`;
-      console.log('原始股票代码:', symbol, '-> 清理后:', cleanSymbol);
-      console.log('请求路径:', path);
+      // 构建查询字符串
+      const queryString = Object.keys(params)
+        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+        .join('&')
+      
+      const fullPath = queryString ? `${path}?${queryString}` : path
+      
+      console.log(`API请求: ${fullPath}`)
       
       return await new Promise((resolve, reject) => {
         wx.cloud.callContainer({
-          "config": {
-            "env": "prod-1gs83ryma8b2a51f"
+          config: {
+            env: this.baseConfig.env
           },
-          "path": path,
-          "header": {
-            "X-WX-SERVICE": "test"
+          path: fullPath,
+          header: {
+            "X-WX-SERVICE": this.baseConfig.service
           },
-          "method": "GET",
+          method: "GET",
           success: (res) => {
-            console.log('API响应:', res);
+            console.log(`API响应 [${path}]:`, res)
+            console.log(`响应数据结构:`, JSON.stringify(res.data, null, 2))
             if (res.statusCode === 200) {
               resolve(res.data)
             } else {
@@ -35,285 +53,198 @@ class StockAPI {
             }
           },
           fail: (err) => {
-            console.error('API请求失败:', err);
+            console.error(`API请求失败 [${path}]:`, err)
             reject(new Error(`网络请求失败: ${err.errMsg}`))
           }
         })
       })
-    } catch (error) {  
+    } catch (error) {
       if (retryCount < this.maxRetries) {
-        console.log(`请求重试 ${retryCount + 1}/${this.maxRetries}:`, error.message)
+        console.log(`API重试 ${retryCount + 1}/${this.maxRetries} [${path}]:`, error.message)
         await this.delay(2000 * (retryCount + 1))
-        return this.requestStockData(symbol, indicator, period, retryCount + 1)
+        return this.request(path, params, retryCount + 1)
       }
       throw error
     }
   }
 
-  // 延迟函数
+  /**
+   * 延迟函数
+   * @param {number} ms - 延迟毫秒数
+   */
   delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
 
-
-  // 搜索股票
-  async searchStock(keyword, retryCount = 0) {
-    try {
-      const path = `/stock_search?keyword=${encodeURIComponent(keyword)}`;
-      console.log('搜索股票:', keyword);
-      console.log('请求路径:', path);
-      
-      return await new Promise((resolve, reject) => {
-        wx.cloud.callContainer({
-          "config": {
-            "env": "prod-1gs83ryma8b2a51f"
-          },
-          "path": path,
-          "header": {
-            "X-WX-SERVICE": "test"
-          },
-          "method": "GET",
-          success: (res) => {
-            console.log('搜索API响应:', res);
-            if (res.statusCode === 200) {
-              // 处理新的API响应格式
-              const formattedData = this.formatSearchData(res.data);
-              resolve(formattedData)
-            } else {
-              reject(new Error(`搜索请求失败: ${res.statusCode}`))
-            }
-          },
-          fail: (err) => {
-            console.error('搜索API请求失败:', err);
-            reject(new Error(`网络请求失败: ${err.errMsg}`))
-          }
-        })
-      })
-    } catch (error) {  
-      if (retryCount < this.maxRetries) {
-        console.log(`搜索请求重试 ${retryCount + 1}/${this.maxRetries}:`, error.message)
-        await this.delay(2000 * (retryCount + 1))
-        return this.searchStock(keyword, retryCount + 1)
-      }
-      
-      console.error('搜索失败:', error);
-      throw error
-    }
+  /**
+   * 清理股票代码（去掉市场后缀）
+   * @param {string} symbol - 原始股票代码
+   * @returns {string} 清理后的股票代码
+   */
+  cleanSymbol(symbol) {
+    return symbol.split('.')[0]
   }
 
-  // 格式化搜索数据
-  formatSearchData(data) {
-    console.log('开始格式化搜索数据:', data);
-    
-    // 新API格式: { count: number, results: [...] }
-    if (data && typeof data.count === 'number' && Array.isArray(data.results)) {
-      console.log(`检测到新的搜索API格式，共${data.count}条结果`);
-      
-      const formattedResults = data.results.map(item => {
-        return {
-          symbol: item.code,
-          name: item.name,
-          market: 'A股',
-          // 为了兼容现有代码，添加一些默认值
-          price: 0,
-          change: 0,
-          changePercent: 0
-        };
-      });
-      
-      console.log('格式化完成，结果数量:', formattedResults.length);
-      return formattedResults;
-    }
-    
-    // 兼容旧格式或直接返回数组
-    if (Array.isArray(data)) {
-      console.log('检测到数组格式的搜索数据');
-      return data;
-    }
-    
-    console.log('未知的搜索数据格式，返回空数组');
-    return [];
-  }
-
-  // 获取股票历史数据
+  /**
+   * 获取股票历史数据
+   * @param {string} symbol - 股票代码
+   * @param {string} period - 时间周期
+   * @returns {Promise} 历史数据
+   */
   async getStockHistory(symbol, period = '1y') {
-    try {
-      // 使用微信云托管stock_data接口，获取所有历史数据
-      console.log('正在获取股票历史数据:', symbol, period);
-      // 将英文period转换为中文period
-      const chinesePeriod = this.convertPeriodToChinese(period);
-      const result = await this.requestStockData(symbol, '总市值', chinesePeriod);
-      const allData = this.formatHistoryData(result);
-      console.log('获取到的全部数据:', allData.length, '个数据点');
-      
-      // 根据时间范围过滤数据
-      const filteredData = this.filterDataByPeriod(allData, period);
-      console.log('过滤后的数据:', filteredData.length, '个数据点');
-      
-      return filteredData;
-    } catch (error) {
-      console.error('获取历史数据失败:', error);
-      throw error;
-    }
-  }
-
-
-  // 格式化历史数据
-  formatHistoryData(data) {
-    console.log('开始格式化数据:', data);
+    const cleanSymbol = this.cleanSymbol(symbol)
     
-    // 新格式: 数组包含对象，每个对象有 date 和 value 字段
-    if (Array.isArray(data) && data.length > 0 && data[0].date && data[0].value) {
-      console.log('检测到新的API数据格式');
-      
-      const marketCapData = data.map(item => {
-        const marketCapInYi = parseFloat(item.value);
-        
-        return {
-          date: item.date,
-          marketCap: marketCapInYi, // 亿为单位
-          price: marketCapInYi / 10, // 简化的股价计算
-          volume: Math.floor(Math.random() * 1000000000) // 随机生成交易量
-        };
-      });
-      
-      // 按日期排序
-      marketCapData.sort((a, b) => new Date(a.date) - new Date(b.date));
-      console.log('格式化完成，数据点数量:', marketCapData.length);
-      
-      return marketCapData;
-    }
-    
-    // 兼容旧格式: 数组包含对象，每个对象有 date 和 market_cap 字段
-    if (Array.isArray(data) && data.length > 0 && data[0].date && data[0].market_cap) {
-      console.log('检测到旧的API数据格式');
-      
-      const marketCapData = data.map(item => {
-        const marketCapInYi = parseFloat(item.market_cap);
-        
-        return {
-          date: item.date,
-          marketCap: marketCapInYi, // 亿为单位
-          price: marketCapInYi / 10, // 简化的股价计算
-          volume: Math.floor(Math.random() * 1000000000) // 随机生成交易量
-        };
-      });
-      
-      // 按日期排序
-      marketCapData.sort((a, b) => new Date(a.date) - new Date(b.date));
-      console.log('格式化完成，数据点数量:', marketCapData.length);
-      
-      return marketCapData;
-    }
-    
-    // 兼容旧格式的处理逻辑
-    let marketCapArray = null;
-    
-    // 格式1: [number, [string, string, ...]]
-    if (Array.isArray(data) && data.length >= 2 && Array.isArray(data[1])) {
-      marketCapArray = data[1];
-    }
-    // 格式2: { data: [...] }
-    else if (data && data.data && Array.isArray(data.data)) {
-      marketCapArray = data.data;
-    }
-    // 格式3: 直接是数组
-    else if (Array.isArray(data)) {
-      // 检查是否第一个元素是数字，其余是字符串（市值数据）
-      if (data.length > 1 && typeof data[0] === 'number') {
-        marketCapArray = data.slice(1); // 去掉第一个数字
-      } else {
-        marketCapArray = data;
-      }
-    }
-    else {
-      console.log('数据格式不正确，返回空数组');
-      return [];
-    }
-    
-    // 兼容旧格式的处理
-    const now = new Date();
-    const marketCapData = [];
-    
-    // 为每个数据点生成日期，这里假设数据是按周返回的
-    marketCapArray.forEach((marketCap, index) => {
-      // 从当前日期开始，每周减去一周
-      const date = new Date(now.getTime() - (marketCapArray.length - 1 - index) * 7 * 24 * 60 * 60 * 1000);
-      const formattedDate = date.toISOString().split('T')[0];
-      
-      // 数据已经是亿为单位，直接使用
-      const marketCapInYi = parseFloat(marketCap);
-      
-      marketCapData.push({
-        date: formattedDate,
-        marketCap: marketCapInYi, // 直接使用亿为单位的数值
-        price: marketCapInYi / 10, // 简化的股价计算
-        volume: Math.floor(Math.random() * 1000000000) // 随机生成交易量
-      });
-    });
-    
-    return marketCapData;
-  }
-
-  // 将英文period转换为中文period
-  convertPeriodToChinese(period) {
+    // 将UI的时间范围转换为API需要的格式
     const periodMap = {
       '1y': '近一年',
       '3y': '近三年', 
       '5y': '近五年',
       '10y': '近十年',
       'max': '全部'
-    };
-    return periodMap[period] || '近一年';
-  }
-
-  // 根据时间范围过滤数据
-  filterDataByPeriod(data, period) {
-    if (!data || data.length === 0) return data;
-    
-    const now = new Date();
-    let cutoffDate;
-    
-    switch (period) {
-      case '1y':
-      case '近一年':
-        cutoffDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-        break;
-      case '3y':
-      case '近三年':
-        cutoffDate = new Date(now.getFullYear() - 3, now.getMonth(), now.getDate());
-        break;
-      case '5y':
-      case '近五年':
-        cutoffDate = new Date(now.getFullYear() - 5, now.getMonth(), now.getDate());
-        break;
-      case '10y':
-      case '近十年':
-        cutoffDate = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
-        break;
-      case 'max':
-      case '全部':
-        // 返回所有数据
-        return data;
-      default:
-        // 默认1年
-        cutoffDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
     }
     
-    // 过滤出指定时间范围内的数据
-    const filteredData = data.filter(item => {
-      const itemDate = new Date(item.date);
-      return itemDate >= cutoffDate;
-    });
+    const apiPeriod = periodMap[period] || period
     
-    console.log(`时间范围 ${period}: 从 ${cutoffDate.toISOString().split('T')[0]} 到现在`);
+    const params = {
+      symbol: cleanSymbol,
+      indicator: '总市值',
+      period: apiPeriod
+    }
     
-    return filteredData;
+    console.log('股票历史数据请求参数:', params)
+    
+    const data = await this.request('/stock_data', params)
+    return this.formatHistoryData(data)
   }
 
+  /**
+   * 搜索股票
+   * @param {string} keyword - 搜索关键词
+   * @returns {Promise} 搜索结果
+   */
+  async searchStock(keyword) {
+    const params = { keyword }
+    const data = await this.request('/stock_search', params)
+    return this.formatSearchData(data)
+  }
 
-  // 格式化市值显示（统一使用亿为单位）
+  /**
+   * 获取热门搜索股票
+   * @returns {Promise} 热门搜索数据
+   */
+  async getHotSearchStocks() {
+    return await this.request('/stock_hot_search')
+  }
+
+  /**
+   * 获取稳定股东信息
+   * @param {string} symbol - 股票代码
+   * @returns {Promise} 稳定股东数据
+   */
+  async getStableShareholders(symbol) {
+    const cleanSymbol = this.cleanSymbol(symbol)
+    const params = { symbol: cleanSymbol }
+    return await this.request('/stock_stable_shareholders', params)
+  }
+
+  /**
+   * 格式化历史数据
+   * @param {Object} rawData - 原始API数据
+   * @returns {Array} 格式化后的历史数据
+   */
+  formatHistoryData(rawData) {
+    console.log('formatHistoryData: 开始格式化数据', rawData)
+    
+    if (!rawData) {
+      console.log('formatHistoryData: 没有数据')
+      return []
+    }
+
+    // 处理不同的API响应格式
+    let dataArray = []
+    
+    // 如果直接是数组（新的API响应格式）
+    if (Array.isArray(rawData)) {
+      console.log('formatHistoryData: 数据格式为直接数组')
+      dataArray = rawData
+    }
+    // 如果是包装在data字段中的数组
+    else if (rawData.data && Array.isArray(rawData.data)) {
+      console.log('formatHistoryData: 数据格式为 rawData.data 数组')
+      dataArray = rawData.data
+    } 
+    // 如果是嵌套的data.data结构
+    else if (rawData.data && rawData.data.data && Array.isArray(rawData.data.data)) {
+      console.log('formatHistoryData: 数据格式为 rawData.data.data 数组')
+      dataArray = rawData.data.data
+    } 
+    // 如果是results结构
+    else if (rawData.data && rawData.data.results && Array.isArray(rawData.data.results)) {
+      console.log('formatHistoryData: 数据格式为 rawData.data.results 数组')
+      dataArray = rawData.data.results
+    } 
+    else {
+      console.log('formatHistoryData: 未识别的数据格式', rawData)
+      return []
+    }
+
+    console.log('formatHistoryData: 提取的数据数组长度:', dataArray.length)
+    if (dataArray.length > 0) {
+      console.log('formatHistoryData: 第一个数据项:', dataArray[0])
+    }
+
+    const formattedData = dataArray.map(item => ({
+      date: item.date || item.time,
+      marketCap: parseFloat(item.market_cap || item.value || 0),
+      price: parseFloat(item.price || 0)
+    })).filter(item => !isNaN(item.marketCap) && item.marketCap > 0)
+    
+    console.log('formatHistoryData: 格式化并过滤后的数据长度:', formattedData.length)
+    
+    return formattedData
+  }
+
+  /**
+   * 格式化搜索数据
+   * @param {Object} rawData - 原始搜索数据
+   * @returns {Array} 格式化后的搜索结果
+   */
+  formatSearchData(rawData) {
+    if (!rawData || !rawData.results) {
+      return []
+    }
+
+    return rawData.results.map(item => ({
+      symbol: item.code || item.symbol,
+      name: item.name,
+      market: this.determineMarket(item.code || item.symbol),
+      price: parseFloat(item.price || 0),
+      change: parseFloat(item.change || 0),
+      changePercent: parseFloat(item.change_percent || 0)
+    }))
+  }
+
+  /**
+   * 根据股票代码判断市场
+   * @param {string} code - 股票代码
+   * @returns {string} 市场名称
+   */
+  determineMarket(code) {
+    if (!code) return 'A股'
+    
+    if (code.includes('.HK')) return '港股'
+    if (code.includes('.US') || /^[A-Z]+$/.test(code)) return '美股'
+    return 'A股'
+  }
+
+  /**
+   * 格式化市值显示（统一使用亿为单位）
+   * @param {number} value - 市值数值
+   * @returns {string} 格式化后的市值字符串
+   */
   formatMarketCap(value) {
+    if (typeof value !== 'number' || isNaN(value)) return '0'
+    
     let result
     if (value >= 10000) {
       result = (value / 10000).toFixed(2) + '万'
@@ -321,23 +252,23 @@ class StockAPI {
       result = value.toFixed(2)
     }
     
-    // 为数字部分添加千位分隔符
     return this.addCommas(result)
   }
 
-  // 添加千位分隔符
+  /**
+   * 为数字添加千位分隔符
+   * @param {string} str - 数字字符串
+   * @returns {string} 添加分隔符后的字符串
+   */
   addCommas(str) {
-    // 分离数字部分和单位部分
     const match = str.match(/^([0-9.]+)(.*)$/)
     if (!match) return str
     
     const [, numberPart, unitPart] = match
     const parts = numberPart.split('.')
     
-    // 为整数部分添加逗号
     const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     
-    // 重新组合
     let result = integerPart
     if (parts[1]) {
       result += '.' + parts[1]
@@ -347,48 +278,12 @@ class StockAPI {
     return result
   }
 
-  // 获取热门搜索股票
-  async getHotSearchStocks(retryCount = 0) {
-    try {
-      const path = `/stock_hot_search`;
-      console.log('获取热门搜索股票');
-      console.log('请求路径:', path);
-      
-      return await new Promise((resolve, reject) => {
-        wx.cloud.callContainer({
-          "config": {
-            "env": "prod-1gs83ryma8b2a51f"
-          },
-          "path": path,
-          "header": {
-            "X-WX-SERVICE": "test"
-          },
-          "method": "GET",
-          success: (res) => {
-            console.log('热门搜索API响应:', res);
-            if (res.statusCode === 200) {
-              resolve(res.data)
-            } else {
-              reject(new Error(`请求失败: ${res.statusCode}`))
-            }
-          },
-          fail: (err) => {
-            console.error('热门搜索API请求失败:', err);
-            reject(new Error(`网络请求失败: ${err.errMsg}`))
-          }
-        })
-      })
-    } catch (error) {  
-      if (retryCount < this.maxRetries) {
-        console.log(`热门搜索请求重试 ${retryCount + 1}/${this.maxRetries}:`, error.message)
-        await this.delay(2000 * (retryCount + 1))
-        return this.getHotSearchStocks(retryCount + 1)
-      }
-      throw error
-    }
-  }
-
-  // 格式化价格变化
+  /**
+   * 格式化价格变化
+   * @param {number} change - 价格变化
+   * @param {number} changePercent - 价格变化百分比
+   * @returns {string} 格式化后的价格变化字符串
+   */
   formatPriceChange(change, changePercent) {
     const sign = change >= 0 ? '+' : ''
     return `${sign}${change.toFixed(2)} (${sign}${changePercent.toFixed(2)}%)`
