@@ -273,20 +273,24 @@ Page({
     const currentTurnover = turnovers[turnovers.length - 1]
     const maxTurnover = Math.max(...turnovers)
     const minTurnover = Math.min(...turnovers)
-    const avgTurnover = turnovers.reduce((sum, val) => sum + val, 0) / turnovers.length
+    
+    // 计算当前实际换手率分位（当前值在历史数据中的百分位）
+    const sortedTurnovers = [...turnovers].sort((a, b) => a - b)
+    const currentIndex = sortedTurnovers.findIndex(val => val >= currentTurnover)
+    const percentile = ((currentIndex / (sortedTurnovers.length - 1)) * 100).toFixed(1)
     
     console.log('实际换手率数据:', {
       currentTurnover,
       maxTurnover,
       minTurnover,
-      avgTurnover
+      percentile
     })
 
     const turnoverStatsData = {
       currentTurnover: currentTurnover.toFixed(2),
       maxTurnover: maxTurnover.toFixed(2),
       minTurnover: minTurnover.toFixed(2),
-      avgTurnover: avgTurnover.toFixed(2),
+      percentile: percentile,
       stableRatio: this.data.turnoverData.stable_ratio.toFixed(1)
     }
     

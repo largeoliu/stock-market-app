@@ -49,8 +49,8 @@
         <view class="value-number">{{stats.currentMarketCapFormatted}}</view>
       </view>
       <view class="current-value" wx:elif="{{currentDataType === 'actualTurnover'}}">
-        <view class="value-label">稳定比例</view>
-        <view class="value-number">{{turnoverStats.stableRatio}}%</view>
+        <view class="value-label">当前实际换手率（%）</view>
+        <view class="value-number">{{turnoverStats.currentTurnover}}%</view>
       </view>
       
       <!-- 时间范围选择 -->
@@ -95,24 +95,20 @@
         </view>
       </view>
       
-      <view class="stats-grid stats-turnover" wx:elif="{{currentDataType === 'actualTurnover'}}">
+      <view class="stats-grid" wx:elif="{{currentDataType === 'actualTurnover'}}">
         <view class="stat-item">
-          <view class="stat-label">当前实际换手率</view>
+          <view class="stat-label">当前分位</view>
           <view class="stat-value primary">
-            {{turnoverStats.currentTurnover}}%
+            {{turnoverStats.percentile}}%
           </view>
         </view>
         <view class="stat-item">
-          <view class="stat-label">历史最高</view>
+          <view class="stat-label">最高</view>
           <view class="stat-value">{{turnoverStats.maxTurnover}}%</view>
         </view>
         <view class="stat-item">
-          <view class="stat-label">历史最低</view>
+          <view class="stat-label">最低</view>
           <view class="stat-value">{{turnoverStats.minTurnover}}%</view>
-        </view>
-        <view class="stat-item">
-          <view class="stat-label">平均换手率</view>
-          <view class="stat-value">{{turnoverStats.avgTurnover}}%</view>
         </view>
       </view>
     </view>
@@ -133,6 +129,7 @@
           x-data="{{ chartXData }}"
           width="{{ screenWidth }}"
           height="250"
+          data-type="{{ currentDataType }}"
         ></simple-chart>
       </view>
     </view>

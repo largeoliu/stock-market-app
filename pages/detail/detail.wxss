@@ -91,10 +91,7 @@
   margin-top: 40rpx;
 }
 
-/* 实际换手率统计需要4个项目，使用2x2布局 */
-.stats-turnover {
-  grid-template-columns: 1fr 1fr;
-}
+/* 实际换手率统计现在只有3个项目，使用默认的3列布局 */
 
 .stat-item {
   text-align: center;

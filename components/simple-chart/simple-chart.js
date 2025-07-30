@@ -16,6 +16,10 @@ Component({
     height: {
       type: Number,
       value: 200
+    },
+    dataType: {
+      type: String,
+      value: 'marketCap' // 'marketCap' | 'actualTurnover'
     }
   },
 
@@ -260,14 +264,18 @@ Component({
         }
       }
       
-      // 显示市值标签和数值
+      // 显示标签和数值
+      const label = this.properties.dataType === 'actualTurnover' ? '实际换手率' : '市值'
       ctx.setFillStyle('#374151')
       ctx.setFontSize(13)
-      ctx.fillText('市值', leftPadding, yOffset)
+      ctx.fillText(label, leftPadding, yOffset)
       
       ctx.setFillStyle('#00C2FF')
       ctx.setFontSize(16)
-      ctx.fillText(this.formatValue(hoveredValue), leftPadding + 60, yOffset)
+      const formattedValue = this.properties.dataType === 'actualTurnover' 
+        ? hoveredValue.toFixed(2) + '%' 
+        : this.formatValue(hoveredValue)
+      ctx.fillText(formattedValue, leftPadding + 80, yOffset)
       yOffset += 25
       
       // 显示分位值
