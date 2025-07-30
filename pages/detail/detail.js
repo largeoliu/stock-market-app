@@ -9,6 +9,7 @@ Page({
       name: '',
       market: ''
     },
+    screenWidth: 375, // 默认屏幕宽度
     isFavorited: false, // 收藏状态
     currentPeriod: '1y', // 当前选择的时间范围
     periods: [
@@ -51,12 +52,17 @@ Page({
   onLoad(options) {
     const { symbol, name, market } = options
     
+    // 获取屏幕宽度
+    const systemInfo = wx.getSystemInfoSync()
+    const screenWidth = systemInfo.windowWidth
+    
     this.setData({
       stock: {
         symbol: symbol || '',
         name: name || '',
         market: market || ''
-      }
+      },
+      screenWidth: screenWidth
     })
 
     // 设置页面标题

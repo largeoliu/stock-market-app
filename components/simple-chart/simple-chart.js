@@ -66,7 +66,7 @@ Component({
       ctx.fillRect(0, 0, width, height)
       
       // 计算绘图区域 - 为信息面板留出空间
-      const leftPadding = 30 // 减少左边留白
+      const leftPadding = 35 // 适中的左边留白
       const rightPadding = 20
       const topPadding = 50 // 为信息面板留出更多空间
       const bottomPadding = 20
@@ -187,7 +187,7 @@ Component({
 
     drawLabels(ctx, data, xData, leftPadding, topPadding, chartWidth, chartHeight, minValue, maxValue) {
       ctx.setFillStyle('#9CA3AF')
-      ctx.setFontSize(11)
+      ctx.setFontSize(10) // 减小字体大小以适应更多内容
       
       // Y轴标签
       ctx.setTextAlign('right')
@@ -196,7 +196,7 @@ Component({
         const value = minValue + (maxValue - minValue) * (i / 3)
         const y = topPadding + chartHeight - (i / 3) * chartHeight
         const label = this.formatValue(value)
-        ctx.fillText(label, leftPadding - 8, y)
+        ctx.fillText(label, leftPadding - 5, y) // 减少右边距，让标签更靠近Y轴
       }
 
       // X轴标签 - 只显示起始和结束时间
@@ -333,7 +333,7 @@ Component({
       const x = touch.x
       
       // 计算触摸点对应的数据索引
-      const leftPadding = 45
+      const leftPadding = 35 // 保持与绘图区域一致
       const rightPadding = 20
       const chartWidth = width - leftPadding - rightPadding
       const relativeX = x - leftPadding

@@ -245,7 +245,7 @@
 
 /* 图表区域 */
 .chart-section {
-  padding: 24rpx 16rpx;
+  padding: 24rpx 0; /* 移除左右padding，实现全屏宽度 */
   margin-bottom: 0;
   background: linear-gradient(135deg, rgba(0, 194, 255, 0.02) 0%, rgba(0, 129, 255, 0.005) 100%);
   border: none;
@@ -260,6 +260,7 @@
   color: #1A1D24;
   margin-bottom: 40rpx;
   letter-spacing: 0.5rpx;
+  padding: 0 32rpx; /* 为标题添加左右padding */
 }
 
 .chart-loading {

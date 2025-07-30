@@ -89,7 +89,7 @@
         <simple-chart 
           data="{{ chartData }}"
           x-data="{{ chartXData }}"
-          width="380"
+          width="{{ screenWidth }}"
           height="250"
         ></simple-chart>
       </view>
