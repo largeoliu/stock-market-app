@@ -318,7 +318,7 @@ ec-canvas {
 /* 总体统计 */
 .shareholders-summary {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr; /* 改为两列布局 */
   gap: 24rpx;
   margin-bottom: 40rpx;
 }
@@ -368,6 +368,7 @@ ec-canvas {
 
 .shareholder-item {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   padding: 24rpx 0;
   border-bottom: 1rpx solid #E5E8EB;
@@ -377,52 +378,25 @@ ec-canvas {
   border-bottom: none;
 }
 
-.shareholder-info {
-  flex: 1;
-  margin-right: 20rpx;
-}
-
 .shareholder-name {
   font-size: 30rpx;
   font-weight: 600;
   color: #1A1D24;
-  margin-bottom: 8rpx;
   line-height: 1.4;
+  flex: 1;
 }
 
 .shareholder-meta {
   display: flex;
-  gap: 20rpx;
+  align-items: center;
 }
 
 .meta-item {
   font-size: 26rpx;
-  color: #6B7280;
-  background: #F5F7FA;
-  padding: 4rpx 12rpx;
-  border-radius: 12rpx;
+  color: #00C2FF;
+  font-weight: 600;
 }
 
-/* 稳定性指示器 */
-.stability-indicator {
-  width: 120rpx;
-  text-align: center;
-}
-
-.stability-bar {
-  width: 100%;
-  height: 8rpx;
-  background: #E5E8EB;
-  border-radius: 4rpx;
-  overflow: hidden;
-}
-
-.stability-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #00D084 0%, #00C2FF 100%);
-  border-radius: 4rpx;
-  transition: width 0.3s ease;
-}
 
 /* 错误状态 */
 .shareholders-error {
