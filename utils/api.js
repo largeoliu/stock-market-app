@@ -133,7 +133,38 @@ class StockAPI {
    * @returns {Promise} 热门搜索数据
    */
   async getHotSearchStocks() {
-    return await this.request('/stock_hot_search')
+    const data = await this.request('/stock_hot_search')
+    return this.formatHotSearchData(data)
+  }
+
+  /**
+   * 格式化热门搜索数据
+   * @param {Object} rawData - 原始热门搜索数据
+   * @returns {Object} 格式化后的热门搜索数据
+   */
+  formatHotSearchData(rawData) {
+    console.log('formatHotSearchData: 原始数据', rawData)
+    
+    if (!rawData || !rawData.results) {
+      return { results: [] }
+    }
+
+    const formattedResults = rawData.results.map((item, index) => ({
+      name: item.name,
+      rank: item.rank || index + 1,
+      changePercent: item.change_percent,
+      heatScore: item.heat_score,
+      // 尝试从多个可能的字段获取股票代码
+      symbol: item.symbol || item.code || item.stock_code || item.stock_symbol,
+      market: item.market || 'A股'
+    }))
+
+    console.log('formatHotSearchData: 格式化后数据', formattedResults.slice(0, 3))
+
+    return {
+      ...rawData,
+      results: formattedResults
+    }
   }
 
   /**
