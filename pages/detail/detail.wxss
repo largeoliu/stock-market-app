@@ -276,7 +276,7 @@
 
 .chart-container {
   width: 100%;
-  height: 600rpx;
+  height: 450rpx; /* 减少高度，消除多余空白 */
   border-radius: 16rpx;
   overflow: hidden;
   background: #FAFBFC;

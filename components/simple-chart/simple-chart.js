@@ -69,7 +69,7 @@ Component({
       const leftPadding = 35 // 适中的左边留白
       const rightPadding = 20
       const topPadding = 50 // 为信息面板留出更多空间
-      const bottomPadding = 20
+      const bottomPadding = 40 // 增加底部留白以容纳X轴标签
       const chartWidth = width - leftPadding - rightPadding
       const chartHeight = height - topPadding - bottomPadding
       
