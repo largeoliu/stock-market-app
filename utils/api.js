@@ -147,15 +147,27 @@ class StockAPI {
     
     // 处理新的API格式：直接返回数组
     if (Array.isArray(rawData)) {
-      const formattedResults = rawData.map((item, index) => ({
-        name: item.name,
-        rank: index + 1, // 按顺序设置排名
-        changePercent: item.change_percent || '', // 新格式可能没有涨跌幅
-        heatScore: item.heat_score || 0,
-        symbol: item.code || item.symbol || item.stock_code, // 使用code字段作为主要股票代码
-        market: item.market || 'A股'
-      }))
+      // 使用Map去重，以code作为唯一标识
+      const uniqueMap = new Map()
+      
+      rawData.forEach((item) => {
+        const code = item.code || item.symbol || item.stock_code
+        if (code && !uniqueMap.has(code)) {
+          uniqueMap.set(code, {
+            name: item.name,
+            rank: uniqueMap.size + 1, // 去重后重新计算排名
+            changePercent: item.change_percent || '', // 新格式可能没有涨跌幅
+            heatScore: item.heat_score || 0,
+            symbol: code, // 使用code字段作为主要股票代码
+            market: item.market || 'A股'
+          })
+        }
+      })
 
+      const formattedResults = Array.from(uniqueMap.values())
+      
+      console.log('formatHotSearchData: 去重前数量', rawData.length)
+      console.log('formatHotSearchData: 去重后数量', formattedResults.length)
       console.log('formatHotSearchData: 格式化后数据', formattedResults.slice(0, 3))
 
       return {
