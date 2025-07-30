@@ -1,48 +1,203 @@
-<!--pages/index/index.wxml-->
+<!--pages/search/search.wxml-->
 <view class="container">
   <!-- 安全区域占位 -->
   <view class="safe-area-top" style="height: {{safeAreaTop}}px;"></view>
   
   <!-- 标题栏 -->
   <view class="header">
-    <text class="header-title">股票市值</text>
+    <text class="header-title">股票市值查询</text>
   </view>
   
   <!-- 搜索栏 -->
-  <view class="search-bar" bindtap="onSearchTap">
-    <view class="search-input">
+  <view class="search-header">
+    <view class="search-input-wrapper">
       <text class="search-icon">🔍</text>
-      <text class="search-placeholder">搜索股票代码或名称</text>
+      <input 
+        class="search-input"
+        placeholder="搜索股票代码或名称"
+        value="{{keyword}}"
+        bindinput="onInputChange"
+        focus="{{true}}"
+        confirm-type="search"
+      />
+      <text 
+        wx:if="{{keyword}}"
+        class="clear-icon"
+        bindtap="onClearInput"
+      >✕</text>
+    </view>
+    <text class="cancel-btn" bindtap="onCancel">取消</text>
+  </view>
+
+  <!-- 搜索结果 -->
+  <view wx:if="{{showResults}}" class="search-results">
+    <!-- 加载中 -->
+    <view wx:if="{{loading}}" class="loading">
+      <loading></loading>
+      <text class="loading-text">搜索中...</text>
+    </view>
+    
+    <!-- 搜索结果列表 -->
+    <view wx:elif="{{searchResults.length > 0}}" class="results-list">
+      <view 
+        wx:for="{{searchResults}}" 
+        wx:key="symbol"
+        class="result-item"
+        data-stock="{{item}}"
+        bindtap="onResultTap"
+      >
+        <view class="stock-info">
+          <view class="stock-name">{{item.name}}</view>
+          <view class="stock-code">{{item.symbol}} · {{item.market}}</view>
+        </view>
+        <view wx:if="{{item.price}}" class="stock-price">
+          <view class="price">¥{{item.price}}</view>
+          <view class="price-change {{item.change >= 0 ? 'text-success' : 'text-danger'}}">
+            {{item.change >= 0 ? '+' : ''}}{{item.change}} ({{item.change >= 0 ? '+' : ''}}{{item.changePercent}}%)
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 无结果 -->
+    <view wx:else class="empty-results">
+      <text class="empty-icon">📭</text>
+      <text class="empty-text">未找到相关股票</text>
+      <text class="empty-tip">请尝试使用股票代码或完整名称搜索</text>
     </view>
   </view>
 
-  <!-- 加载状态 -->
-  <view wx:if="{{loading}}" class="loading">
-    <loading></loading>
-    <text class="loading-text">加载中...</text>
-  </view>
-
-  <!-- 主要内容 -->
-  <view wx:else>
-    <!-- 最近搜索 -->
-    <view wx:if="{{recentSearches.length > 0}}" class="section">
-      <view class="section-header">
-        <text class="section-title">最近搜索</text>
-        <text class="clear-btn" bindtap="clearRecentSearches">清除</text>
-      </view>
-      <view class="recent-list">
+  <!-- 默认内容 -->
+  <view wx:else class="default-content">
+    <!-- 标签页切换 -->
+    <view class="tab-container">
+      <view class="tab-header">
         <view 
-          wx:for="{{recentSearches}}" 
-          wx:key="symbol"
-          class="recent-item"
-          data-stock="{{item}}"
-          bindtap="onStockTap"
+          class="tab-item {{currentTab === 'hot' ? 'active' : ''}}"
+          data-tab="hot"
+          bindtap="onTabChange"
         >
-          <view class="recent-info">
-            <text class="recent-name">{{item.name}}</text>
-            <text class="recent-code">{{item.symbol}}</text>
+          热门搜索
+        </view>
+        <view 
+          class="tab-item {{currentTab === 'recent' ? 'active' : ''}}"
+          data-tab="recent"
+          bindtap="onTabChange"
+        >
+          最近搜索
+        </view>
+        <view 
+          class="tab-item {{currentTab === 'favorites' ? 'active' : ''}}"
+          data-tab="favorites"
+          bindtap="onTabChange"
+        >
+          我的收藏
+        </view>
+      </view>
+      
+      <!-- 标签页内容 -->
+      <view class="tab-content">
+        <!-- 热门搜索 -->
+        <view wx:if="{{currentTab === 'hot'}}" class="tab-panel">
+          <!-- 加载状态 -->
+          <view wx:if="{{hotStocksLoading}}" class="hot-stocks-loading">
+            <loading size="mini"></loading>
+            <text class="loading-text-small">加载中...</text>
           </view>
-          <text class="arrow-icon">›</text>
+          
+          <!-- 热门股票列表 -->
+          <view wx:else class="hot-stocks-list">
+            <view 
+              wx:for="{{hotStocks}}" 
+              wx:key="name"
+              class="hot-stock-item"
+              data-stock="{{item}}"
+              bindtap="onHotStockTap"
+            >
+              <view class="hot-stock-rank">{{item.rank}}</view>
+              <view class="hot-stock-info">
+                <text class="hot-stock-name">{{item.name}}</text>
+                <text class="hot-stock-change {{item.changePercent && item.changePercent.indexOf('-') === 0 ? 'text-danger' : 'text-success'}}">
+                  {{item.changePercent || '--'}}
+                </text>
+              </view>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 最近搜索 -->
+        <view wx:if="{{currentTab === 'recent'}}" class="tab-panel">
+          <view wx:if="{{recentSearches.length > 0}}">
+            <view class="recent-header">
+              <text class="clear-all-btn" bindtap="clearAllRecentSearches">清空全部</text>
+            </view>
+            <view class="recent-searches">
+              <view 
+                wx:for="{{recentSearches}}" 
+                wx:key="symbol"
+                class="recent-item"
+                data-stock="{{item}}"
+                bindtap="onRecentTap"
+              >
+                <view class="recent-info">
+                  <view class="recent-name">{{item.name}}</view>
+                  <view class="recent-code">{{item.symbol}}</view>
+                </view>
+                <text 
+                  class="delete-icon"
+                  data-index="{{index}}"
+                  bindtap="deleteRecentItem"
+                >✕</text>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 无最近搜索 -->
+          <view wx:else class="empty-recent">
+            <text class="empty-icon">🕒</text>
+            <text class="empty-text">暂无搜索记录</text>
+            <text class="empty-tip">搜索过的股票会显示在这里</text>
+          </view>
+        </view>
+        
+        <!-- 我的收藏 -->
+        <view wx:if="{{currentTab === 'favorites'}}" class="tab-panel">
+          <view wx:if="{{favoriteStocks.length > 0}}">
+            <view class="favorites-header">
+              <text class="favorites-count">共 {{favoriteStocks.length}} 只股票</text>
+              <text class="clear-all-btn" bindtap="clearAllFavorites">清空全部</text>
+            </view>
+            <view class="favorite-stocks">
+              <view 
+                wx:for="{{favoriteStocks}}" 
+                wx:key="symbol"
+                class="favorite-item"
+                data-stock="{{item}}"
+                bindtap="onFavoriteTap"
+              >
+                <view class="favorite-info">
+                  <view class="favorite-name">{{item.name}}</view>
+                  <view class="favorite-details">
+                    <text class="favorite-code">{{item.symbol}}</text>
+                    <text class="favorite-market">{{item.market}}</text>
+                  </view>
+                  <view class="favorite-time">收藏于 {{item.formatTime}}</view>
+                </view>
+                <text 
+                  class="delete-icon"
+                  data-index="{{index}}"
+                  bindtap="deleteFavoriteItem"
+                >✕</text>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 无收藏 -->
+          <view wx:else class="empty-favorites">
+            <text class="empty-icon">💼</text>
+            <text class="empty-text">暂无收藏</text>
+            <text class="empty-tip">搜索并收藏感兴趣的股票</text>
+          </view>
         </view>
       </view>
     </view>
