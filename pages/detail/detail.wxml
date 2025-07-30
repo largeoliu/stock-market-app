@@ -25,14 +25,35 @@
       </view>
     </view>
 
-    <!-- 时间范围选择 -->
-    <view class="period-selector card">
-      <!-- 当前市值 -->
-      <view class="current-market-cap">
-        <view class="market-cap-label">当前市值（亿）</view>
-        <view class="market-cap-value">{{stats.currentMarketCapFormatted}}</view>
+    <!-- 数据类型和时间范围选择 -->
+    <view class="selector-section card">
+      <!-- 数据类型切换 -->
+      <view class="data-type-selector">
+        <view class="selector-title">数据类型</view>
+        <view class="data-type-buttons">
+          <view 
+            wx:for="{{dataTypes}}" 
+            wx:key="key"
+            class="data-type-btn {{item.active ? 'active' : ''}}"
+            data-type="{{item.key}}"
+            bindtap="onDataTypeChange"
+          >
+            {{item.label}}
+          </view>
+        </view>
+      </view>
+
+      <!-- 当前数值显示 -->
+      <view class="current-value" wx:if="{{currentDataType === 'marketCap'}}">
+        <view class="value-label">当前市值（亿）</view>
+        <view class="value-number">{{stats.currentMarketCapFormatted}}</view>
+      </view>
+      <view class="current-value" wx:elif="{{currentDataType === 'actualTurnover'}}">
+        <view class="value-label">稳定比例</view>
+        <view class="value-number">{{turnoverStats.stableRatio}}%</view>
       </view>
       
+      <!-- 时间范围选择 -->
       <view class="period-title">时间范围</view>
       <view class="period-selector-container">
         <view class="period-selector-track">
@@ -56,8 +77,8 @@
         </view>
       </view>
       
-      <!-- 市值统计 -->
-      <view class="stats-grid">
+      <!-- 统计信息 -->
+      <view class="stats-grid" wx:if="{{currentDataType === 'marketCap'}}">
         <view class="stat-item">
           <view class="stat-label">当前市值分位</view>
           <view class="stat-value primary">
@@ -73,12 +94,33 @@
           <view class="stat-value">{{stats.minMarketCapFormatted}}</view>
         </view>
       </view>
+      
+      <view class="stats-grid stats-turnover" wx:elif="{{currentDataType === 'actualTurnover'}}">
+        <view class="stat-item">
+          <view class="stat-label">当前实际换手率</view>
+          <view class="stat-value primary">
+            {{turnoverStats.currentTurnover}}%
+          </view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-label">历史最高</view>
+          <view class="stat-value">{{turnoverStats.maxTurnover}}%</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-label">历史最低</view>
+          <view class="stat-value">{{turnoverStats.minTurnover}}%</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-label">平均换手率</view>
+          <view class="stat-value">{{turnoverStats.avgTurnover}}%</view>
+        </view>
+      </view>
     </view>
 
     <!-- 图表区域 -->
     <view class="chart-section card">
       <view class="chart-title">
-        市值走势图
+        {{currentDataType === 'marketCap' ? '市值走势图' : '实际换手率走势图'}}
         <view wx:if="{{chartLoading}}" class="chart-loading">
           <loading size="mini"></loading>
           <text class="loading-text-small">更新中...</text>

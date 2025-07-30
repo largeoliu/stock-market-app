@@ -91,6 +91,11 @@
   margin-top: 40rpx;
 }
 
+/* 实际换手率统计需要4个项目，使用2x2布局 */
+.stats-turnover {
+  grid-template-columns: 1fr 1fr;
+}
+
 .stat-item {
   text-align: center;
   padding: 28rpx 20rpx;
@@ -134,10 +139,78 @@
   text-shadow: 0 0 20rpx rgba(0, 208, 132, 0.3);
 }
 
-/* 时间范围选择 */
-.period-selector {
+/* 选择器区域 */
+.selector-section {
   padding: 40rpx 32rpx;
   margin-bottom: 24rpx;
+}
+
+/* 数据类型选择器 */
+.data-type-selector {
+  margin-bottom: 32rpx;
+}
+
+.selector-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1A1D24;
+  margin-bottom: 20rpx;
+  letter-spacing: 0.5rpx;
+}
+
+.data-type-buttons {
+  display: flex;
+  gap: 16rpx;
+}
+
+.data-type-btn {
+  flex: 1;
+  padding: 24rpx 32rpx;
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #6B7280;
+  background: #F5F7FA;
+  border: 1rpx solid #E5E8EB;
+  border-radius: 16rpx;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+}
+
+.data-type-btn.active {
+  background: linear-gradient(135deg, #00C2FF 0%, #0081FF 100%);
+  color: white;
+  border-color: #00C2FF;
+  box-shadow: 0 4rpx 12rpx rgba(0, 194, 255, 0.3);
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
+}
+
+.data-type-btn:active {
+  transform: scale(0.96);
+}
+
+/* 当前数值显示 */
+.current-value {
+  text-align: center;
+  margin-bottom: 40rpx;
+  padding-bottom: 32rpx;
+  border-bottom: 1rpx solid #E5E8EB;
+}
+
+.value-label {
+  font-size: 32rpx;
+  color: #6B7280;
+  margin-bottom: 16rpx;
+  font-weight: 500;
+}
+
+.value-number {
+  font-size: 64rpx;
+  font-weight: 700;
+  color: #00C2FF;
+  text-shadow: 0 0 20rpx rgba(0, 194, 255, 0.3);
+  letter-spacing: 1rpx;
 }
 
 /* 当前市值 */

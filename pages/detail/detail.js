@@ -19,6 +19,12 @@ Page({
       { key: '10y', label: '10年', active: false },
       { key: 'max', label: '全部', active: false }
     ],
+    // 数据类型切换
+    currentDataType: 'marketCap', // 当前数据类型: 'marketCap' | 'actualTurnover'
+    dataTypes: [
+      { key: 'marketCap', label: '总市值', active: true },
+      { key: 'actualTurnover', label: '实际换手率', active: false }
+    ],
     // 滑动指示器位置和宽度（初始值基于5个等分的估算）
     indicatorPosition: 0, // 初始在第一个位置，完全贴合左边
     indicatorWidth: 130, // 大概的宽度，会在页面渲染后重新计算
@@ -39,6 +45,22 @@ Page({
       avgMarketCap: 0,
       changePercent: 0,
       totalChange: 0
+    },
+    
+    // 实际换手率数据
+    turnoverData: {
+      symbol: '',
+      stable_ratio: 0,
+      data: []
+    },
+    
+    // 实际换手率统计信息
+    turnoverStats: {
+      currentTurnover: 0,
+      maxTurnover: 0,
+      minTurnover: 0,
+      avgTurnover: 0,
+      stableRatio: 0
     },
     
     // 稳定股东信息
@@ -97,29 +119,11 @@ Page({
     try {
       util.showLoading('加载中...')
       
-      const historyData = await stockAPI.getStockHistory(
-        this.data.stock.symbol, 
-        this.data.currentPeriod
-      )
-      
-      console.log('获取到的历史数据:', historyData)
-      console.log('数据长度:', historyData.length)
-      
-      // 格式化历史数据显示
-      const formattedHistoryData = historyData.map(item => ({
-        ...item,
-        marketCapFormatted: stockAPI.formatMarketCap(item.marketCap)
-      }))
-      
-      console.log('格式化后的数据:', formattedHistoryData.slice(0, 3))
-      
-      this.setData({
-        historyData: formattedHistoryData,
-        loading: false
-      })
-      
-      this.calculateStats(historyData)
-      this.updateChart(historyData)
+      if (this.data.currentDataType === 'marketCap') {
+        await this.loadMarketCapData()
+      } else {
+        await this.loadTurnoverData()
+      }
       
       // 确保指示器位置正确
       setTimeout(() => {
@@ -133,6 +137,54 @@ Page({
       util.showToast('加载失败，请重试')
       this.setData({ loading: false })
     }
+  },
+
+  // 加载市值数据
+  async loadMarketCapData() {
+    const historyData = await stockAPI.getStockHistory(
+      this.data.stock.symbol, 
+      this.data.currentPeriod
+    )
+    
+    console.log('获取到的历史数据:', historyData)
+    console.log('数据长度:', historyData.length)
+    
+    // 格式化历史数据显示
+    const formattedHistoryData = historyData.map(item => ({
+      ...item,
+      marketCapFormatted: stockAPI.formatMarketCap(item.marketCap)
+    }))
+    
+    console.log('格式化后的数据:', formattedHistoryData.slice(0, 3))
+    
+    this.setData({
+      historyData: formattedHistoryData,
+      loading: false
+    })
+    
+    this.calculateStats(historyData)
+    this.updateChart(historyData)
+  },
+
+  // 加载实际换手率数据
+  async loadTurnoverData() {
+    const { startDate, endDate } = stockAPI.generateDateRange(this.data.currentPeriod)
+    
+    const turnoverData = await stockAPI.getStockActualTurnover(
+      this.data.stock.symbol,
+      startDate,
+      endDate
+    )
+    
+    console.log('获取到的实际换手率数据:', turnoverData)
+    
+    this.setData({
+      turnoverData: turnoverData,
+      loading: false
+    })
+    
+    this.calculateTurnoverStats(turnoverData.data)
+    this.updateTurnoverChart(turnoverData.data)
   },
 
   // 计算统计信息
@@ -208,6 +260,43 @@ Page({
     }
   },
 
+  // 计算实际换手率统计信息
+  calculateTurnoverStats(data) {
+    if (!data || data.length === 0) {
+      console.log('calculateTurnoverStats: 没有数据')
+      return
+    }
+
+    console.log('calculateTurnoverStats: 开始计算实际换手率统计信息，数据长度:', data.length)
+    
+    const turnovers = data.map(item => item.actual_turnover)
+    const currentTurnover = turnovers[turnovers.length - 1]
+    const maxTurnover = Math.max(...turnovers)
+    const minTurnover = Math.min(...turnovers)
+    const avgTurnover = turnovers.reduce((sum, val) => sum + val, 0) / turnovers.length
+    
+    console.log('实际换手率数据:', {
+      currentTurnover,
+      maxTurnover,
+      minTurnover,
+      avgTurnover
+    })
+
+    const turnoverStatsData = {
+      currentTurnover: currentTurnover.toFixed(2),
+      maxTurnover: maxTurnover.toFixed(2),
+      minTurnover: minTurnover.toFixed(2),
+      avgTurnover: avgTurnover.toFixed(2),
+      stableRatio: this.data.turnoverData.stable_ratio.toFixed(1)
+    }
+    
+    console.log('格式化后的实际换手率统计数据:', turnoverStatsData)
+
+    this.setData({
+      turnoverStats: turnoverStatsData
+    })
+  },
+
   // 更新图表
   updateChart(data) {
     if (!data || data.length === 0) return
@@ -217,6 +306,19 @@ Page({
 
     this.setData({
       chartData: marketCaps,
+      chartXData: dates
+    })
+  },
+
+  // 更新实际换手率图表
+  updateTurnoverChart(data) {
+    if (!data || data.length === 0) return
+
+    const dates = data.map(item => item.date)
+    const turnovers = data.map(item => item.actual_turnover)
+
+    this.setData({
+      chartData: turnovers,
       chartXData: dates
     })
   },
@@ -276,6 +378,50 @@ Page({
     }).exec()
   },
 
+  // 切换数据类型
+  async onDataTypeChange(e) {
+    const dataType = e.currentTarget.dataset.type
+    
+    if (dataType === this.data.currentDataType) return
+
+    // 触觉反馈
+    wx.vibrateShort({
+      type: 'light',
+      fail: () => {}
+    })
+
+    // 更新选中状态
+    const dataTypes = this.data.dataTypes.map(item => ({
+      ...item,
+      active: item.key === dataType
+    }))
+
+    this.setData({
+      currentDataType: dataType,
+      dataTypes,
+      chartLoading: true
+    })
+
+    try {
+      if (dataType === 'marketCap') {
+        await this.loadMarketCapData()
+      } else {
+        await this.loadTurnoverData()
+      }
+      
+      this.setData({ chartLoading: false })
+      
+      // 延迟重新计算指示器位置
+      setTimeout(() => {
+        this.calculateIndicatorPosition()
+      }, 100)
+    } catch (error) {
+      console.error('切换数据类型失败:', error)
+      util.showToast('加载失败，请重试')
+      this.setData({ chartLoading: false })
+    }
+  },
+
   // 切换时间范围
   async onPeriodChange(e) {
     const period = e.currentTarget.dataset.period
@@ -305,23 +451,13 @@ Page({
     this.updateIndicatorPosition(index)
 
     try {
-      const historyData = await stockAPI.getStockHistory(
-        this.data.stock.symbol, 
-        period
-      )
-      // 格式化历史数据显示
-      const formattedHistoryData = historyData.map(item => ({
-        ...item,
-        marketCapFormatted: stockAPI.formatMarketCap(item.marketCap)
-      }))
+      if (this.data.currentDataType === 'marketCap') {
+        await this.loadMarketCapData()
+      } else {
+        await this.loadTurnoverData()
+      }
       
-      this.setData({
-        historyData: formattedHistoryData,
-        chartLoading: false
-      })
-      
-      this.calculateStats(historyData)
-      this.updateChart(historyData)
+      this.setData({ chartLoading: false })
       
       // 延迟重新计算指示器位置，确保DOM更新完成
       setTimeout(() => {

@@ -83,6 +83,51 @@ class StockAPI {
   }
 
   /**
+   * 根据时间范围生成开始和结束日期
+   * @param {string} period - 时间范围
+   * @returns {Object} 包含startDate和endDate的对象
+   */
+  generateDateRange(period = '1y') {
+    const now = new Date()
+    const endDate = this.formatDate(now)
+    let startDate
+    
+    switch (period) {
+      case '1y':
+        startDate = this.formatDate(new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()))
+        break
+      case '3y':
+        startDate = this.formatDate(new Date(now.getFullYear() - 3, now.getMonth(), now.getDate()))
+        break
+      case '5y':
+        startDate = this.formatDate(new Date(now.getFullYear() - 5, now.getMonth(), now.getDate()))
+        break
+      case '10y':
+        startDate = this.formatDate(new Date(now.getFullYear() - 10, now.getMonth(), now.getDate()))
+        break
+      case 'max':
+        startDate = '20000101' // 默认从2000年开始
+        break
+      default:
+        startDate = this.formatDate(new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()))
+    }
+    
+    return { startDate, endDate }
+  }
+
+  /**
+   * 格式化日期为YYYYMMDD格式
+   * @param {Date} date - 日期对象
+   * @returns {string} 格式化后的日期字符串
+   */
+  formatDate(date) {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}${month}${day}`
+  }
+
+  /**
    * 清理股票代码（去掉市场后缀）
    * @param {string} symbol - 原始股票代码
    * @returns {string} 清理后的股票代码
@@ -214,6 +259,63 @@ class StockAPI {
     const cleanSymbol = this.cleanSymbol(symbol)
     const params = { symbol: cleanSymbol }
     return await this.request('/stock_stable_shareholders', params)
+  }
+
+  /**
+   * 获取股票实际换手率历史数据
+   * @param {string} symbol - 股票代码
+   * @param {string} startDate - 开始日期 (格式：YYYYMMDD)
+   * @param {string} endDate - 结束日期 (格式：YYYYMMDD)
+   * @returns {Promise} 实际换手率数据
+   */
+  async getStockActualTurnover(symbol, startDate, endDate) {
+    const cleanSymbol = this.cleanSymbol(symbol)
+    
+    const params = {
+      symbol: cleanSymbol,
+      start_date: startDate,
+      end_date: endDate
+    }
+    
+    console.log('实际换手率请求参数:', params)
+    
+    const data = await this.request('/stock_actual_turnover', params)
+    return this.formatTurnoverData(data)
+  }
+
+  /**
+   * 格式化实际换手率数据
+   * @param {Object} rawData - 原始实际换手率API数据
+   * @returns {Object} 格式化后的实际换手率数据
+   */
+  formatTurnoverData(rawData) {
+    console.log('formatTurnoverData: 开始格式化实际换手率数据', rawData)
+    
+    if (!rawData) {
+      console.log('formatTurnoverData: 没有数据')
+      return { symbol: '', stable_ratio: 0, data: [] }
+    }
+
+    // 处理API响应格式
+    const result = {
+      symbol: rawData.symbol || '',
+      stable_ratio: parseFloat(rawData.stable_ratio || 0),
+      data: []
+    }
+
+    // 格式化数据数组
+    if (rawData.data && Array.isArray(rawData.data)) {
+      result.data = rawData.data.map(item => ({
+        date: item.date,
+        original_turnover: parseFloat(item.original_turnover || 0),
+        actual_turnover: parseFloat(item.actual_turnover || 0)
+      })).filter(item => !isNaN(item.actual_turnover))
+    }
+    
+    console.log('formatTurnoverData: 格式化后的数据长度:', result.data.length)
+    console.log('formatTurnoverData: 稳定比例:', result.stable_ratio)
+    
+    return result
   }
 
   /**
