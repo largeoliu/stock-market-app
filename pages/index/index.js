@@ -238,11 +238,8 @@ Page({
       
       console.log('收藏列表排序后:', sortedStocks.map(s => ({ name: s.name, time: s.timestamp })))
       
-      // 格式化时间显示
-      const formattedStocks = sortedStocks.map(stock => ({
-        ...stock,
-        formatTime: stock.timestamp ? new Date(stock.timestamp).toLocaleDateString() : '--'
-      }))
+      // 直接使用排序后的数据，不需要格式化时间
+      const formattedStocks = sortedStocks
       
       this.setData({
         favoriteStocks: formattedStocks

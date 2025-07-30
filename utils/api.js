@@ -7,7 +7,7 @@ const util = require('./util.js')
  */
 class StockAPI {
   constructor() {
-    this.timeout = 15000
+    this.timeout = 1000 // 设置为1秒超时
     this.maxRetries = 2
     this.baseConfig = {
       env: "prod-1gs83ryma8b2a51f",
@@ -43,6 +43,7 @@ class StockAPI {
             "X-WX-SERVICE": this.baseConfig.service
           },
           method: "GET",
+          timeout: this.timeout, // 应用超时设置
           success: (res) => {
             console.log(`API响应 [${path}]:`, res)
             console.log(`响应数据结构:`, JSON.stringify(res.data, null, 2))
@@ -54,14 +55,19 @@ class StockAPI {
           },
           fail: (err) => {
             console.error(`API请求失败 [${path}]:`, err)
-            reject(new Error(`网络请求失败: ${err.errMsg}`))
+            const errorMsg = err.errMsg || 'unknown error'
+            if (errorMsg.includes('timeout') || errorMsg.includes('超时')) {
+              reject(new Error(`请求超时，请检查网络连接`))
+            } else {
+              reject(new Error(`网络请求失败: ${errorMsg}`))
+            }
           }
         })
       })
     } catch (error) {
       if (retryCount < this.maxRetries) {
         console.log(`API重试 ${retryCount + 1}/${this.maxRetries} [${path}]:`, error.message)
-        await this.delay(2000 * (retryCount + 1))
+        await this.delay(500 * (retryCount + 1)) // 减少重试延迟时间，第一次重试500ms，第二次1s
         return this.request(path, params, retryCount + 1)
       }
       throw error

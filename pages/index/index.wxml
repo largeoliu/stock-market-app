@@ -183,9 +183,7 @@
                   <view class="favorite-name">{{item.name}}</view>
                   <view class="favorite-details">
                     <text class="favorite-code">{{item.symbol}}</text>
-                    <text class="favorite-market">{{item.market}}</text>
                   </view>
-                  <view class="favorite-time">收藏于 {{item.formatTime}}</view>
                 </view>
                 <text 
                   class="delete-icon"
