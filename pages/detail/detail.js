@@ -194,6 +194,13 @@ Page({
       const shareholdersData = await stockAPI.getStableShareholders(this.data.stock.symbol)
       console.log('稳定股东数据:', shareholdersData)
       
+      // 过滤掉包含"保险"的股东
+      if (shareholdersData && shareholdersData.stable_shareholders) {
+        shareholdersData.stable_shareholders = shareholdersData.stable_shareholders.filter(
+          shareholder => !shareholder.shareholder_name.includes('保险')
+        )
+      }
+      
       this.setData({
         'stableShareholders.data': shareholdersData,
         'stableShareholders.loading': false
