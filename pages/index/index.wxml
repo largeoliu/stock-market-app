@@ -165,7 +165,7 @@
                 <text 
                   class="delete-icon"
                   data-index="{{index}}"
-                  bindtap="deleteRecentItem"
+                  catchtap="deleteRecentItem"
                 >✕</text>
               </view>
             </view>
@@ -203,7 +203,7 @@
                 <text 
                   class="delete-icon"
                   data-index="{{index}}"
-                  bindtap="deleteFavoriteItem"
+                  catchtap="deleteFavoriteItem"
                 >✕</text>
               </view>
             </view>

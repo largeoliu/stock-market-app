@@ -265,7 +265,6 @@ Page({
 
   // 删除单个搜索记录
   deleteRecentItem(e) {
-    e.stopPropagation() // 阻止事件冒泡
     
     const index = e.currentTarget.dataset.index
     const recentSearches = util.getStorage('recent_searches', [])
@@ -323,7 +322,6 @@ Page({
 
   // 删除自选
   deleteFavoriteItem(e) {
-    e.stopPropagation() // 阻止事件冒泡
     
     const index = e.currentTarget.dataset.index
     const stock = this.data.favoriteStocks[index]
@@ -391,5 +389,56 @@ Page({
         }
       }
     })
+  },
+
+  // 删除单个搜索记录
+  deleteRecentItem(e) {
+    const index = e.currentTarget.dataset.index
+    const recentSearches = util.getStorage('recent_searches', [])
+    
+    recentSearches.splice(index, 1)
+    util.setStorage('recent_searches', recentSearches)
+    
+    this.setData({ recentSearches: recentSearches.slice(0, 20) })
+    util.showToast('已删除', 'success')
+  },
+
+  // 删除自选
+  deleteFavoriteItem(e) {
+    
+    const index = e.currentTarget.dataset.index
+    const stock = this.data.favoriteStocks[index]
+    
+    wx.showModal({
+      title: '确认删除',
+      content: `确定要取消自选 ${stock.name} 吗？`,
+      success: (res) => {
+        if (res.confirm) {
+          this.removeFavoriteItem(index)
+        }
+      }
+    })
+  },
+
+  // 删除自选项
+  removeFavoriteItem(index) {
+    // 从存储中获取原始数据
+    const storedFavorites = util.getStorage('favorite_stocks', [])
+    const sortedStored = storedFavorites.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+    
+    // 删除指定项
+    sortedStored.splice(index, 1)
+    
+    // 更新存储
+    util.setStorage('favorite_stocks', sortedStored)
+    
+    // 更新全局数据
+    const app = getApp()
+    app.globalData.favoriteStocks = sortedStored
+    
+    // 重新加载自选列表
+    this.loadFavorites()
+    
+    util.showToast('已取消自选', 'success')
   }
 })
