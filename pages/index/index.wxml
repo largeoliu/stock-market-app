@@ -1,33 +1,64 @@
 <!--pages/search/search.wxml-->
 <view class="container">
-  <!-- 安全区域占位 -->
-  <view class="safe-area-top" style="height: {{safeAreaTop}}px;"></view>
-  
-  <!-- 标题栏 -->
-  <view class="header">
-    <text class="header-title">股票市值查询</text>
-  </view>
-  
-  <!-- 搜索栏 -->
-  <view class="search-header">
-    <view class="search-input-wrapper">
-      <text class="search-icon">🔍</text>
-      <input 
-        class="search-input"
-        placeholder="搜索股票代码或名称"
-        value="{{keyword}}"
-        bindinput="onInputChange"
-        focus="{{true}}"
-        confirm-type="search"
-      />
-      <text 
-        wx:if="{{keyword}}"
-        class="clear-icon"
-        bindtap="onClearInput"
-      >✕</text>
+  <!-- 固定顶部区域 -->
+  <view class="fixed-header">
+    <!-- 安全区域占位 -->
+    <view class="safe-area-top" style="height: {{safeAreaTop}}px;"></view>
+    
+    <!-- 标题栏 -->
+    <view class="header">
+      <text class="header-title">股票市值查询</text>
     </view>
-    <text class="cancel-btn" bindtap="onCancel">取消</text>
+    
+    <!-- 搜索栏 -->
+    <view class="search-header">
+      <view class="search-input-wrapper">
+        <text class="search-icon">🔍</text>
+        <input 
+          class="search-input"
+          placeholder="搜索股票代码或名称"
+          value="{{keyword}}"
+          bindinput="onInputChange"
+          focus="{{true}}"
+          confirm-type="search"
+        />
+        <text 
+          wx:if="{{keyword}}"
+          class="clear-icon"
+          bindtap="onClearInput"
+        >✕</text>
+      </view>
+      <text class="cancel-btn" bindtap="onCancel">取消</text>
+    </view>
+
+    <!-- 标签栏 -->
+    <view wx:if="{{!showResults}}" class="tab-header">
+      <view 
+        class="tab-item {{currentTab === 'hot' ? 'active' : ''}}"
+        data-tab="hot"
+        bindtap="onTabChange"
+      >
+        热门搜索
+      </view>
+      <view 
+        class="tab-item {{currentTab === 'recent' ? 'active' : ''}}"
+        data-tab="recent"
+        bindtap="onTabChange"
+      >
+        最近搜索
+      </view>
+      <view 
+        class="tab-item {{currentTab === 'favorites' ? 'active' : ''}}"
+        data-tab="favorites"
+        bindtap="onTabChange"
+      >
+        我的自选
+      </view>
+    </view>
   </view>
+
+  <!-- 可滚动内容区域 -->
+  <view class="scrollable-content">
 
   <!-- 搜索结果 -->
   <view wx:if="{{showResults}}" class="search-results">
@@ -67,34 +98,8 @@
     </view>
   </view>
 
-  <!-- 默认内容 -->
-  <view wx:else class="default-content">
-    <!-- 标签页切换 -->
-    <view class="tab-container">
-      <view class="tab-header">
-        <view 
-          class="tab-item {{currentTab === 'hot' ? 'active' : ''}}"
-          data-tab="hot"
-          bindtap="onTabChange"
-        >
-          热门搜索
-        </view>
-        <view 
-          class="tab-item {{currentTab === 'recent' ? 'active' : ''}}"
-          data-tab="recent"
-          bindtap="onTabChange"
-        >
-          最近搜索
-        </view>
-        <view 
-          class="tab-item {{currentTab === 'favorites' ? 'active' : ''}}"
-          data-tab="favorites"
-          bindtap="onTabChange"
-        >
-          我的自选
-        </view>
-      </view>
-      
+    <!-- 默认内容 -->
+    <view wx:else class="default-content">
       <!-- 标签页内容 -->
       <view class="tab-content">
         <!-- 热门搜索 -->

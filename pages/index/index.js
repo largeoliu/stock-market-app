@@ -39,7 +39,7 @@ Page({
   // 加载最近搜索
   loadRecentSearches() {
     const recentSearches = util.getStorage('recent_searches', [])
-    this.setData({ recentSearches: recentSearches.slice(0, 8) })
+    this.setData({ recentSearches: recentSearches.slice(0, 20) })
   },
 
   // 加载热门搜索股票
@@ -226,7 +226,7 @@ Page({
     recentSearches.splice(index, 1)
     util.setStorage('recent_searches', recentSearches)
     
-    this.setData({ recentSearches: recentSearches.slice(0, 8) })
+    this.setData({ recentSearches: recentSearches.slice(0, 20) })
     util.showToast('已删除', 'success')
   },
 

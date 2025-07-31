@@ -7,7 +7,7 @@ const util = require('./util.js')
  */
 class StockAPI {
   constructor() {
-    this.timeout = 1000 // 设置为1秒超时
+    this.timeout = 2000 // 设置为2秒超时
     this.maxRetries = 2
     this.baseConfig = {
       env: "prod-1gs83ryma8b2a51f",
