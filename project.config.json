@@ -1,7 +1,28 @@
 {
   "description": "股票市值查询微信小程序",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "scripts"
+      },
+      {
+        "type": "folder", 
+        "value": ".vscode"
+      },
+      {
+        "type": "file",
+        "value": "deploy.config.js"
+      },
+      {
+        "type": "file",
+        "value": "README-DEPLOY.md"
+      },
+      {
+        "type": "suffix",
+        "value": "md"
+      }
+    ],
     "include": []
   },
   "setting": {

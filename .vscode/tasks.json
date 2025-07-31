@@ -1,0 +1,105 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "微信小程序：上传",
+      "type": "shell",
+      "command": "node",
+      "args": ["scripts/wx-upload.js"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "detail": "上传微信小程序到后台，使用默认版本号递增"
+    },
+    {
+      "label": "微信小程序：上传（指定版本）",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "scripts/wx-upload.js",
+        "--version",
+        "${input:versionInput}",
+        "--desc",
+        "${input:descInput}"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "detail": "上传微信小程序到后台，手动指定版本号和描述"
+    },
+    {
+      "label": "微信小程序：预览",
+      "type": "shell",
+      "command": "node",
+      "args": ["scripts/wx-upload.js", "--preview"],
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "detail": "生成微信小程序预览二维码"
+    },
+    {
+      "label": "微信小程序：检查配置",
+      "type": "shell",
+      "command": "node",
+      "args": ["scripts/wx-upload.js", "--check"],
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "detail": "检查微信开发者工具CLI和项目配置"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "versionInput",
+      "description": "输入版本号 (例如: 1.0.1)",
+      "default": "1.0.0",
+      "type": "promptString"
+    },
+    {
+      "id": "descInput", 
+      "description": "输入版本描述",
+      "default": "版本更新",
+      "type": "promptString"
+    }
+  ]
+}
