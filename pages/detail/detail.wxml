@@ -83,17 +83,17 @@
       <!-- 统计信息 -->
       <view class="stats-grid" wx:if="{{currentDataType === 'marketCap'}}">
         <view class="stat-item">
-          <view class="stat-label">当前市值分位</view>
+          <view class="stat-label">当前分位</view>
           <view class="stat-value primary">
             {{stats.percentile}}%
           </view>
         </view>
         <view class="stat-item">
-          <view class="stat-label">最高市值</view>
+          <view class="stat-label">最高</view>
           <view class="stat-value">{{stats.maxMarketCapFormatted}}</view>
         </view>
         <view class="stat-item">
-          <view class="stat-label">最低市值</view>
+          <view class="stat-label">最低</view>
           <view class="stat-value">{{stats.minMarketCapFormatted}}</view>
         </view>
       </view>
