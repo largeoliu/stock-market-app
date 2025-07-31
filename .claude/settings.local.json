@@ -9,7 +9,10 @@
       "Bash(find:*)",
       "Bash(mv:*)",
       "Bash(node:*)",
-      "WebFetch(domain:developers.weixin.qq.com)"
+      "WebFetch(domain:developers.weixin.qq.com)",
+      "Bash(npm install)",
+      "Bash(npm test)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }
