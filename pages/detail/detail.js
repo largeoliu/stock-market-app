@@ -586,13 +586,17 @@ Page({
       if (pages.length >= 2) {
         const prevPage = pages[pages.length - 2]
         if (prevPage.route === 'pages/index/index' && prevPage.setData) {
-          // 清除首页的搜索状态，恢复到热门搜索
+          // 清除首页的搜索状态
           prevPage.setData({
             keyword: '',
             searchResults: [],
-            showResults: false,
-            currentTab: 'hot'
+            showResults: false
           })
+          
+          // 调用首页的setDefaultTab方法来决定显示哪个tab
+          if (prevPage.setDefaultTab) {
+            prevPage.setDefaultTab()
+          }
         }
       }
     } catch (error) {

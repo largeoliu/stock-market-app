@@ -28,6 +28,10 @@ Page({
     this.loadRecentSearches()
     this.loadHotStocks()
     this.loadFavorites()
+    
+    // 检查自选股，如果有自选股则默认显示自选tab
+    this.setDefaultTab()
+    
     // 创建防抖搜索函数
     this.debouncedSearch = util.debounce(this.performSearch.bind(this), 500)
   },
@@ -35,6 +39,20 @@ Page({
   onShow() {
     this.loadRecentSearches()
     this.loadFavorites()
+    // 每次显示页面时也检查默认tab（考虑从其他页面返回的情况）
+    this.setDefaultTab()
+  },
+
+  // 设置默认Tab
+  setDefaultTab() {
+    const favoriteStocks = util.getStorage('favorite_stocks', [])
+    if (favoriteStocks.length > 0) {
+      // 如果有自选股，默认显示自选tab
+      this.setData({
+        currentTab: 'favorites'
+      })
+    }
+    // 如果没有自选股，保持默认的热门搜索tab
   },
 
   // 加载最近搜索
