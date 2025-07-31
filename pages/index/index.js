@@ -205,7 +205,7 @@ Page({
     // 埋点：点击搜索结果
     track.searchResultClick(stock.symbol, stock.name, index)
     
-    this.selectStock(stock)
+    this.selectStock(stock, 'search')
   },
 
   // 点击热门股票
@@ -224,7 +224,7 @@ Page({
     track.hotStockClick(stock.symbol, stock.name, index)
     
     console.log('热门股票点击跳转:', stock)
-    this.selectStock(stock)
+    this.selectStock(stock, 'hot')
   },
 
   // 点击最近搜索
@@ -234,17 +234,18 @@ Page({
     // 埋点：点击历史搜索
     track.recentSearchClick(stock.symbol, stock.name)
     
-    this.selectStock(stock)
+    this.selectStock(stock, 'recent')
   },
 
   // 选择股票
-  selectStock(stock) {
+  selectStock(stock, from = '') {
     // 添加到最近搜索
     this.addToRecentSearches(stock)
     
-    // 跳转到详情页
+    // 跳转到详情页，传递来源信息
+    const fromParam = from ? `&from=${from}` : ''
     wx.navigateTo({
-      url: `/pages/detail/detail?symbol=${stock.symbol}&name=${stock.name}&market=${stock.market || ''}`
+      url: `/pages/detail/detail?symbol=${stock.symbol}&name=${stock.name}&market=${stock.market || ''}${fromParam}`
     })
   },
 
@@ -351,7 +352,7 @@ Page({
     
     // 跳转到详情页
     wx.navigateTo({
-      url: `/pages/detail/detail?symbol=${stock.symbol}&name=${stock.name}&market=${stock.market}`
+      url: `/pages/detail/detail?symbol=${stock.symbol}&name=${stock.name}&market=${stock.market}&from=favorites`
     })
   },
 

@@ -73,7 +73,7 @@ Page({
   },
 
   onLoad(options) {
-    const { symbol, name, market } = options
+    const { symbol, name, market, from } = options
     
     // 获取屏幕宽度
     const systemInfo = wx.getSystemInfoSync()
@@ -85,7 +85,8 @@ Page({
         name: name || '',
         market: market || ''
       },
-      screenWidth: screenWidth
+      screenWidth: screenWidth,
+      fromPage: from || '' // 记录来源页面
     })
 
     // 设置页面标题
@@ -588,17 +589,23 @@ Page({
       if (pages.length >= 2) {
         const prevPage = pages[pages.length - 2]
         if (prevPage.route === 'pages/index/index' && prevPage.setData) {
-          // 清除首页的搜索状态
-          prevPage.setData({
-            keyword: '',
-            searchResults: [],
-            showResults: false
-          })
+          const fromPage = this.data.fromPage
           
-          // 调用首页的setDefaultTab方法来决定显示哪个tab
-          if (prevPage.setDefaultTab) {
-            prevPage.setDefaultTab()
+          // 只有从搜索结果进入的才清除搜索状态
+          if (fromPage === 'search') {
+            prevPage.setData({
+              keyword: '',
+              searchResults: [],
+              showResults: false
+            })
+            
+            // 调用首页的setDefaultTab方法恢复默认tab
+            if (prevPage.setDefaultTab) {
+              prevPage.setDefaultTab()
+            }
           }
+          // 从其他列表（热门搜索、最近搜索、我的自选）进入的不做任何处理
+          // 保持用户离开前的tab状态
         }
       }
     } catch (error) {
