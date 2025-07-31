@@ -566,5 +566,37 @@ Page({
     this.loadStockData().then(() => {
       wx.stopPullDownRefresh()
     })
+  },
+
+  // 页面卸载时处理（包括返回键和导航栏返回）
+  onUnload() {
+    this.clearPreviousPageSearchState()
+  },
+
+  // 自定义返回按钮处理
+  onNavigationBarBackTap() {
+    this.clearPreviousPageSearchState()
+    wx.navigateBack()
+  },
+
+  // 清除上一页面的搜索状态
+  clearPreviousPageSearchState() {
+    try {
+      const pages = getCurrentPages()
+      if (pages.length >= 2) {
+        const prevPage = pages[pages.length - 2]
+        if (prevPage.route === 'pages/index/index' && prevPage.setData) {
+          // 清除首页的搜索状态，恢复到热门搜索
+          prevPage.setData({
+            keyword: '',
+            searchResults: [],
+            showResults: false,
+            currentTab: 'hot'
+          })
+        }
+      }
+    } catch (error) {
+      console.log('清除搜索状态失败:', error)
+    }
   }
 })
