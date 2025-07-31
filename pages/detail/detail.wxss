@@ -208,6 +208,32 @@
   color: #00C2FF;
   text-shadow: 0 0 20rpx rgba(0, 194, 255, 0.3);
   letter-spacing: 1rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+}
+
+/* 流动性标识 */
+.liquidity-tag {
+  font-size: 24rpx;
+  font-weight: 600;
+  padding: 8rpx 16rpx;
+  border-radius: 12rpx;
+  text-shadow: none;
+  letter-spacing: 0;
+}
+
+.liquidity-tag.premium {
+  background: linear-gradient(135deg, rgba(255, 71, 87, 0.2) 0%, rgba(255, 71, 87, 0.1) 100%);
+  color: #FF4757;
+  border: 1rpx solid rgba(255, 71, 87, 0.3);
+}
+
+.liquidity-tag.discount {
+  background: linear-gradient(135deg, rgba(0, 208, 132, 0.2) 0%, rgba(0, 208, 132, 0.1) 100%);
+  color: #00D084;
+  border: 1rpx solid rgba(0, 208, 132, 0.3);
 }
 
 /* 当前市值 */

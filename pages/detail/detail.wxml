@@ -50,7 +50,10 @@
       </view>
       <view class="current-value" wx:elif="{{currentDataType === 'actualTurnover'}}">
         <view class="value-label">当前实际换手率</view>
-        <view class="value-number">{{turnoverStats.currentTurnover}}%</view>
+        <view class="value-number">
+          {{turnoverStats.currentTurnover}}%
+          <text class="liquidity-tag {{turnoverStats.liquidityType}}">{{turnoverStats.liquidityLabel}}</text>
+        </view>
       </view>
       
       <!-- 时间范围选择 -->

@@ -286,12 +286,18 @@ Page({
       percentile
     })
 
+    // 判断流动性类型
+    const liquidityType = currentTurnover < 5 ? 'discount' : 'premium'
+    const liquidityLabel = currentTurnover < 5 ? '流动性折价' : '流动性溢价'
+
     const turnoverStatsData = {
       currentTurnover: currentTurnover.toFixed(2),
       maxTurnover: maxTurnover.toFixed(2),
       minTurnover: minTurnover.toFixed(2),
       percentile: percentile,
-      stableRatio: this.data.turnoverData.stable_ratio.toFixed(1)
+      stableRatio: this.data.turnoverData.stable_ratio.toFixed(1),
+      liquidityType: liquidityType,
+      liquidityLabel: liquidityLabel
     }
     
     console.log('格式化后的实际换手率统计数据:', turnoverStatsData)

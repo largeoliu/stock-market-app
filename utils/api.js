@@ -13,6 +13,10 @@ class StockAPI {
       env: "prod-1gs83ryma8b2a51f",
       service: "test"
     }
+    // 添加缓存
+    this.cache = new Map()
+    this.cacheExpiry = 5 * 60 * 1000 // 缓存5分钟
+    this.shareholdersCacheExpiry = 7 * 24 * 60 * 60 * 1000 // 股东数据缓存7天
   }
 
   /**
@@ -80,6 +84,81 @@ class StockAPI {
    */
   delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
+  }
+
+  /**
+   * 生成缓存键
+   * @param {string} path - API路径
+   * @param {Object} params - 请求参数
+   * @returns {string} 缓存键
+   */
+  generateCacheKey(path, params) {
+    const sortedParams = Object.keys(params)
+      .sort()
+      .map(key => `${key}=${params[key]}`)
+      .join('&')
+    return `${path}?${sortedParams}`
+  }
+
+  /**
+   * 从缓存获取数据
+   * @param {string} cacheKey - 缓存键
+   * @param {number} customExpiry - 自定义过期时间（毫秒）
+   * @returns {Object|null} 缓存的数据或null
+   */
+  getFromCache(cacheKey, customExpiry = null) {
+    const cached = this.cache.get(cacheKey)
+    if (!cached) return null
+    
+    // 使用自定义过期时间或默认过期时间
+    const expiryTime = customExpiry || this.cacheExpiry
+    
+    // 检查是否过期
+    if (Date.now() - cached.timestamp > expiryTime) {
+      this.cache.delete(cacheKey)
+      return null
+    }
+    
+    console.log(`从缓存获取数据: ${cacheKey}`)
+    return cached.data
+  }
+
+  /**
+   * 存储数据到缓存
+   * @param {string} cacheKey - 缓存键
+   * @param {Object} data - 要缓存的数据
+   */
+  setToCache(cacheKey, data) {
+    this.cache.set(cacheKey, {
+      data: data,
+      timestamp: Date.now()
+    })
+    console.log(`数据已缓存: ${cacheKey}`)
+    
+    // 清理过期缓存（避免内存泄漏）
+    this.cleanExpiredCache()
+  }
+
+  /**
+   * 清理过期缓存
+   */
+  cleanExpiredCache() {
+    const now = Date.now()
+    for (const [key, value] of this.cache.entries()) {
+      let isExpired = false
+      
+      // 根据缓存键判断使用哪种过期时间
+      if (key.includes('/stock_stable_shareholders')) {
+        isExpired = now - value.timestamp > this.shareholdersCacheExpiry
+      } else {
+        isExpired = now - value.timestamp > this.cacheExpiry
+      }
+      
+      if (isExpired) {
+        this.cache.delete(key)
+        console.log(`清理过期缓存: ${key}`)
+      }
+    }
   }
 
   /**
@@ -162,10 +241,24 @@ class StockAPI {
       period: apiPeriod
     }
     
+    // 生成缓存键
+    const cacheKey = this.generateCacheKey('/stock_data', params)
+    
+    // 尝试从缓存获取数据
+    const cachedData = this.getFromCache(cacheKey)
+    if (cachedData) {
+      return cachedData
+    }
+    
     console.log('股票历史数据请求参数:', params)
     
     const data = await this.request('/stock_data', params)
-    return this.formatHistoryData(data)
+    const formattedData = this.formatHistoryData(data)
+    
+    // 将结果存入缓存
+    this.setToCache(cacheKey, formattedData)
+    
+    return formattedData
   }
 
   /**
@@ -258,7 +351,24 @@ class StockAPI {
   async getStableShareholders(symbol) {
     const cleanSymbol = this.cleanSymbol(symbol)
     const params = { symbol: cleanSymbol }
-    return await this.request('/stock_stable_shareholders', params)
+    
+    // 生成缓存键
+    const cacheKey = this.generateCacheKey('/stock_stable_shareholders', params)
+    
+    // 尝试从缓存获取数据，使用股东数据的专门过期时间
+    const cachedData = this.getFromCache(cacheKey, this.shareholdersCacheExpiry)
+    if (cachedData) {
+      return cachedData
+    }
+    
+    console.log('稳定股东数据请求参数:', params)
+    
+    const data = await this.request('/stock_stable_shareholders', params)
+    
+    // 将结果存入缓存
+    this.setToCache(cacheKey, data)
+    
+    return data
   }
 
   /**
@@ -277,10 +387,24 @@ class StockAPI {
       end_date: endDate
     }
     
+    // 生成缓存键
+    const cacheKey = this.generateCacheKey('/stock_actual_turnover', params)
+    
+    // 尝试从缓存获取数据
+    const cachedData = this.getFromCache(cacheKey)
+    if (cachedData) {
+      return cachedData
+    }
+    
     console.log('实际换手率请求参数:', params)
     
     const data = await this.request('/stock_actual_turnover', params)
-    return this.formatTurnoverData(data)
+    const formattedData = this.formatTurnoverData(data)
+    
+    // 将结果存入缓存
+    this.setToCache(cacheKey, formattedData)
+    
+    return formattedData
   }
 
   /**
