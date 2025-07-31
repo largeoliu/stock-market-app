@@ -493,18 +493,18 @@ Page({
     const index = favoriteStocks.findIndex(item => item.symbol === stock.symbol)
     
     if (index > -1) {
-      // 取消收藏
+      // 取消自选
       favoriteStocks.splice(index, 1)
-      util.showToast('已取消收藏', 'success')
+      util.showToast('已取消自选', 'success')
     } else {
-      // 添加收藏
+      // 添加自选
       favoriteStocks.push({
         symbol: stock.symbol,
         name: stock.name,
         market: stock.market,
         timestamp: Date.now()
       })
-      util.showToast('已添加收藏', 'success')
+      util.showToast('已加入自选', 'success')
     }
     
     app.globalData.favoriteStocks = favoriteStocks

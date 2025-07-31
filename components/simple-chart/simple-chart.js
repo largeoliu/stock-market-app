@@ -38,7 +38,7 @@ Component({
   },
 
   observers: {
-    'data, xData': function(data, xData) {
+    'data, xData, dataType': function(data, xData, dataType) {
       // 数据变化时重新绘制
       if (data && data.length > 0) {
         setTimeout(() => {
@@ -50,7 +50,7 @@ Component({
 
   methods: {
     drawChart() {
-      const { data, xData, width, height } = this.properties
+      const { data, xData, width, height, dataType } = this.properties
       
       if (!data || data.length === 0) {
         this.drawEmpty()
@@ -92,11 +92,11 @@ Component({
       this.drawLine(ctx, data, leftPadding, topPadding, chartWidth, chartHeight, minValue, valueRange)
       
       // 绘制标签
-      this.drawLabels(ctx, data, xData, leftPadding, topPadding, chartWidth, chartHeight, minValue, maxValue)
+      this.drawLabels(ctx, data, xData, leftPadding, topPadding, chartWidth, chartHeight, minValue, maxValue, dataType)
       
       // 绘制信息面板（仅在有悬停时显示）
       if (this.data.showTooltip && this.data.hoveredIndex !== -1) {
-        this.drawInfoPanel(ctx, data, xData, leftPadding, topPadding, chartWidth, chartHeight, minValue, maxValue)
+        this.drawInfoPanel(ctx, data, xData, leftPadding, topPadding, chartWidth, chartHeight, minValue, maxValue, dataType)
       }
       
       // 绘制悬停指示器
@@ -189,7 +189,7 @@ Component({
       ctx.stroke()
     },
 
-    drawLabels(ctx, data, xData, leftPadding, topPadding, chartWidth, chartHeight, minValue, maxValue) {
+    drawLabels(ctx, data, xData, leftPadding, topPadding, chartWidth, chartHeight, minValue, maxValue, dataType) {
       ctx.setFillStyle('#9CA3AF')
       ctx.setFontSize(10) // 减小字体大小以适应更多内容
       
@@ -199,7 +199,9 @@ Component({
       for (let i = 0; i <= 3; i++) {
         const value = minValue + (maxValue - minValue) * (i / 3)
         const y = topPadding + chartHeight - (i / 3) * chartHeight
-        const label = this.formatValue(value)
+        const label = dataType === 'actualTurnover' 
+          ? value.toFixed(1) + '%' 
+          : this.formatValue(value)
         ctx.fillText(label, leftPadding - 5, y) // 减少右边距，让标签更靠近Y轴
       }
 
@@ -234,7 +236,7 @@ Component({
     },
 
     // 绘制信息面板
-    drawInfoPanel(ctx, data, xData, leftPadding, topPadding, chartWidth, chartHeight, minValue, maxValue) {
+    drawInfoPanel(ctx, data, xData, leftPadding, topPadding, chartWidth, chartHeight, minValue, maxValue, dataType) {
       if (!data || data.length === 0 || this.data.hoveredIndex === -1) return
       
       // 获取悬停点的数据
@@ -265,14 +267,14 @@ Component({
       }
       
       // 显示标签和数值
-      const label = this.properties.dataType === 'actualTurnover' ? '实际换手率' : '市值'
+      const label = dataType === 'actualTurnover' ? '实际换手率' : '市值'
       ctx.setFillStyle('#374151')
       ctx.setFontSize(13)
       ctx.fillText(label, leftPadding, yOffset)
       
       ctx.setFillStyle('#00C2FF')
       ctx.setFontSize(16)
-      const formattedValue = this.properties.dataType === 'actualTurnover' 
+      const formattedValue = dataType === 'actualTurnover' 
         ? hoveredValue.toFixed(2) + '%' 
         : this.formatValue(hoveredValue)
       ctx.fillText(formattedValue, leftPadding + 80, yOffset)
@@ -285,7 +287,7 @@ Component({
       
       ctx.setFillStyle('#6B7280')
       ctx.setFontSize(16)
-      ctx.fillText(percentile, leftPadding + 60, yOffset)
+      ctx.fillText(percentile + '%', leftPadding + 60, yOffset)
     },
 
     // 绘制悬停指示器

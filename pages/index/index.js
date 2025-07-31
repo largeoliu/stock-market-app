@@ -7,7 +7,7 @@ Page({
     keyword: '',
     searchResults: [],
     recentSearches: [],
-    favoriteStocks: [], // 收藏的股票
+    favoriteStocks: [], // 自选的股票
     loading: false,
     showResults: false,
     hotStocks: [],
@@ -239,19 +239,19 @@ Page({
     })
   },
 
-  // 加载收藏列表
+  // 加载自选列表
   loadFavorites() {
     try {
       const favoriteStocks = util.getStorage('favorite_stocks', [])
       
-      // 按收藏时间倒序排序（最新收藏的在前面）
+      // 按自选时间倒序排序（最新自选的在前面）
       const sortedStocks = favoriteStocks.sort((a, b) => {
         const timeA = a.timestamp || 0
         const timeB = b.timestamp || 0
         return timeB - timeA // 倒序排列
       })
       
-      console.log('收藏列表排序后:', sortedStocks.map(s => ({ name: s.name, time: s.timestamp })))
+      console.log('自选列表排序后:', sortedStocks.map(s => ({ name: s.name, time: s.timestamp })))
       
       // 直接使用排序后的数据，不需要格式化时间
       const formattedStocks = sortedStocks
@@ -260,11 +260,11 @@ Page({
         favoriteStocks: formattedStocks
       })
     } catch (error) {
-      console.error('加载收藏列表失败:', error)
+      console.error('加载自选列表失败:', error)
     }
   },
 
-  // 点击收藏项
+  // 点击自选项
   onFavoriteTap(e) {
     const stock = e.currentTarget.dataset.stock
     
@@ -274,7 +274,7 @@ Page({
     })
   },
 
-  // 删除收藏
+  // 删除自选
   deleteFavoriteItem(e) {
     e.stopPropagation() // 阻止事件冒泡
     
@@ -283,7 +283,7 @@ Page({
     
     wx.showModal({
       title: '确认删除',
-      content: `确定要取消收藏 ${stock.name} 吗？`,
+      content: `确定要取消自选 ${stock.name} 吗？`,
       success: (res) => {
         if (res.confirm) {
           this.removeFavoriteItem(index)
@@ -292,7 +292,7 @@ Page({
     })
   },
 
-  // 删除收藏项
+  // 删除自选项
   removeFavoriteItem(index) {
     // 从存储中获取原始数据
     const storedFavorites = util.getStorage('favorite_stocks', [])
@@ -308,22 +308,22 @@ Page({
     const app = getApp()
     app.globalData.favoriteStocks = sortedStored
     
-    // 重新加载收藏列表
+    // 重新加载自选列表
     this.loadFavorites()
     
-    util.showToast('已取消收藏', 'success')
+    util.showToast('已取消自选', 'success')
   },
 
-  // 清空所有收藏
+  // 清空所有自选
   clearAllFavorites() {
     if (this.data.favoriteStocks.length === 0) {
-      util.showToast('收藏列表为空')
+      util.showToast('自选列表为空')
       return
     }
     
     wx.showModal({
       title: '确认清空',
-      content: '确定要清空所有收藏吗？此操作不可恢复。',
+      content: '确定要清空所有自选吗？此操作不可恢复。',
       success: (res) => {
         if (res.confirm) {
           util.removeStorage('favorite_stocks')
@@ -335,7 +335,7 @@ Page({
             favoriteStocks: []
           })
           
-          util.showToast('已清空收藏', 'success')
+          util.showToast('已清空自选', 'success')
         }
       }
     })

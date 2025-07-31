@@ -91,7 +91,7 @@
           data-tab="favorites"
           bindtap="onTabChange"
         >
-          我的收藏
+          我的自选
         </view>
       </view>
       
@@ -172,7 +172,7 @@
           </view>
         </view>
         
-        <!-- 我的收藏 -->
+        <!-- 我的自选 -->
         <view wx:if="{{currentTab === 'favorites'}}" class="tab-panel">
           <view wx:if="{{favoriteStocks.length > 0}}">
             <view class="favorites-header">
@@ -202,11 +202,11 @@
             </view>
           </view>
           
-          <!-- 无收藏 -->
+          <!-- 无自选 -->
           <view wx:else class="empty-favorites">
             <text class="empty-icon">💼</text>
-            <text class="empty-text">暂无收藏</text>
-            <text class="empty-tip">搜索并收藏感兴趣的股票</text>
+            <text class="empty-text">暂无自选</text>
+            <text class="empty-tip">搜索并加入感兴趣的股票</text>
           </view>
         </view>
       </view>

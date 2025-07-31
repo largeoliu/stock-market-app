@@ -12,7 +12,7 @@
     <view class="stock-header card">
       <view class="stock-basic-info">
         <view class="stock-name">{{stock.name}}</view>
-        <view class="stock-code">{{stock.symbol}} · {{stock.market}}</view>
+        <view class="stock-code">{{stock.symbol}}</view>
       </view>
       <view class="stock-actions">
         <button 
@@ -20,7 +20,7 @@
           bindtap="onToggleFavorite"
         >
           <text class="action-icon">{{isFavorited ? '❤️' : '🤍'}}</text>
-          {{isFavorited ? '已收藏' : '收藏'}}
+          {{isFavorited ? '已加自选' : '加入自选'}}
         </button>
       </view>
     </view>
@@ -49,7 +49,7 @@
         <view class="value-number">{{stats.currentMarketCapFormatted}}</view>
       </view>
       <view class="current-value" wx:elif="{{currentDataType === 'actualTurnover'}}">
-        <view class="value-label">当前实际换手率（%）</view>
+        <view class="value-label">当前实际换手率</view>
         <view class="value-number">{{turnoverStats.currentTurnover}}%</view>
       </view>
       
@@ -129,7 +129,7 @@
           x-data="{{ chartXData }}"
           width="{{ screenWidth }}"
           height="250"
-          data-type="{{ currentDataType }}"
+          dataType="{{ currentDataType }}"
         ></simple-chart>
       </view>
     </view>
