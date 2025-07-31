@@ -15,7 +15,8 @@ Page({
     hotStocksLoading: true,
     hotStocksLoadFailed: false, // 热门搜索是否加载失败
     currentTab: 'hot', // 默认显示热门搜索
-    safeAreaTop: 0 // 安全区域顶部高度
+    safeAreaTop: 0, // 安全区域顶部高度
+    isFirstLoad: true // 标记是否首次加载
   },
 
   onLoad() {
@@ -39,8 +40,11 @@ Page({
   onShow() {
     this.loadRecentSearches()
     this.loadFavorites()
-    // 每次显示页面时也检查默认tab（考虑从其他页面返回的情况）
-    this.setDefaultTab()
+    // 只在首次加载时设置默认tab
+    if (this.data.isFirstLoad) {
+      this.setDefaultTab()
+      this.setData({ isFirstLoad: false })
+    }
   },
 
   // 设置默认Tab

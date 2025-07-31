@@ -131,12 +131,13 @@ Page({
         this.calculateIndicatorPosition()
       }, 150)
       
+      this.setData({ loading: false })
       util.hideLoading()
     } catch (error) {
       console.error('加载股票数据失败:', error)
+      this.setData({ loading: false })
       util.hideLoading()
       util.showToast('加载失败，请重试')
-      this.setData({ loading: false })
     }
   },
 
@@ -159,8 +160,7 @@ Page({
     console.log('格式化后的数据:', formattedHistoryData.slice(0, 3))
     
     this.setData({
-      historyData: formattedHistoryData,
-      loading: false
+      historyData: formattedHistoryData
     })
     
     this.calculateStats(historyData)
@@ -180,8 +180,7 @@ Page({
     console.log('获取到的实际换手率数据:', turnoverData)
     
     this.setData({
-      turnoverData: turnoverData,
-      loading: false
+      turnoverData: turnoverData
     })
     
     this.calculateTurnoverStats(turnoverData.data)
@@ -212,8 +211,10 @@ Page({
     
     // 计算当前市值分位（当前值在历史数据中的百分位）
     const sortedMarketCaps = [...marketCaps].sort((a, b) => a - b)
-    const currentIndex = sortedMarketCaps.findIndex(val => val >= currentMarketCap)
-    const percentile = ((currentIndex / (sortedMarketCaps.length - 1)) * 100).toFixed(1)
+    // 计算有多少个值小于当前值
+    const countBelow = sortedMarketCaps.filter(val => val < currentMarketCap).length
+    // 分位数 = 小于当前值的数据个数 / 总数据个数 * 100
+    const percentile = ((countBelow / marketCaps.length) * 100).toFixed(1)
 
     console.log('计算的分位数:', percentile)
 
@@ -277,8 +278,10 @@ Page({
     
     // 计算当前实际换手率分位（当前值在历史数据中的百分位）
     const sortedTurnovers = [...turnovers].sort((a, b) => a - b)
-    const currentIndex = sortedTurnovers.findIndex(val => val >= currentTurnover)
-    const percentile = ((currentIndex / (sortedTurnovers.length - 1)) * 100).toFixed(1)
+    // 计算有多少个值小于当前值
+    const countBelow = sortedTurnovers.filter(val => val < currentTurnover).length
+    // 分位数 = 小于当前值的数据个数 / 总数据个数 * 100
+    const percentile = ((countBelow / turnovers.length) * 100).toFixed(1)
     
     console.log('实际换手率数据:', {
       currentTurnover,
