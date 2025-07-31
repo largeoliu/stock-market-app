@@ -15,8 +15,10 @@ Page({
     hotStocksLoading: true,
     hotStocksLoadFailed: false, // 热门搜索是否加载失败
     currentTab: 'hot', // 默认显示热门搜索
+    currentTabIndex: 0, // 当前tab的索引，用于swiper
     safeAreaTop: 0, // 安全区域顶部高度
-    isFirstLoad: true // 标记是否首次加载
+    isFirstLoad: true, // 标记是否首次加载
+    tabList: ['hot', 'recent', 'favorites'] // tab列表，对应swiper的索引
   },
 
   onLoad() {
@@ -52,8 +54,10 @@ Page({
     const favoriteStocks = util.getStorage('favorite_stocks', [])
     if (favoriteStocks.length > 0) {
       // 如果有自选股，默认显示自选tab
+      const tabIndex = this.data.tabList.indexOf('favorites')
       this.setData({
-        currentTab: 'favorites'
+        currentTab: 'favorites',
+        currentTabIndex: tabIndex
       })
     }
     // 如果没有自选股，保持默认的热门搜索tab
@@ -112,7 +116,11 @@ Page({
       track.tabSwitch(currentTab, tab)
     }
     
-    this.setData({ currentTab: tab })
+    const tabIndex = this.data.tabList.indexOf(tab)
+    this.setData({ 
+      currentTab: tab,
+      currentTabIndex: tabIndex
+    })
     
     // 触觉反馈
     wx.vibrateShort({
@@ -121,6 +129,29 @@ Page({
     })
 
     // 如果切换到热门搜索，且之前加载失败或没有数据，则重新加载
+    if (tab === 'hot' && (this.data.hotStocksLoadFailed || this.data.hotStocks.length === 0)) {
+      console.log('重新加载热门搜索数据')
+      this.loadHotStocks()
+    }
+  },
+
+  // swiper滑动事件
+  onSwiperChange(e) {
+    const currentIndex = e.detail.current
+    const tab = this.data.tabList[currentIndex]
+    const currentTab = this.data.currentTab
+    
+    // 埋点：Tab切换（通过滑动）
+    if (currentTab !== tab) {
+      track.tabSwitch(currentTab, tab)
+    }
+    
+    this.setData({
+      currentTab: tab,
+      currentTabIndex: currentIndex
+    })
+
+    // 如果滑动到热门搜索，且之前加载失败或没有数据，则重新加载
     if (tab === 'hot' && (this.data.hotStocksLoadFailed || this.data.hotStocks.length === 0)) {
       console.log('重新加载热门搜索数据')
       this.loadHotStocks()

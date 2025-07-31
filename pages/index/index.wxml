@@ -105,9 +105,15 @@
     <!-- 默认内容 -->
     <view wx:else class="default-content">
       <!-- 标签页内容 -->
-      <view class="tab-content">
+      <swiper 
+        class="tab-swiper"
+        current="{{currentTabIndex}}"
+        bindchange="onSwiperChange"
+        duration="300"
+        easing-function="easeInOutCubic"
+      >
         <!-- 热门搜索 -->
-        <view wx:if="{{currentTab === 'hot'}}" class="tab-panel">
+        <swiper-item class="tab-panel">
           <!-- 加载状态 -->
           <view wx:if="{{hotStocksLoading}}" class="hot-stocks-loading">
             <loading size="mini"></loading>
@@ -145,10 +151,10 @@
               </view>
             </view>
           </view>
-        </view>
+        </swiper-item>
         
         <!-- 最近搜索 -->
-        <view wx:if="{{currentTab === 'recent'}}" class="tab-panel">
+        <swiper-item class="tab-panel">
           <view wx:if="{{recentSearches.length > 0}}">
             <view class="recent-header">
               <text class="clear-all-btn" bindtap="clearAllRecentSearches">清空全部</text>
@@ -180,10 +186,10 @@
             <text class="empty-text">暂无搜索记录</text>
             <text class="empty-tip">搜索过的股票会显示在这里</text>
           </view>
-        </view>
+        </swiper-item>
         
         <!-- 我的自选 -->
-        <view wx:if="{{currentTab === 'favorites'}}" class="tab-panel">
+        <swiper-item class="tab-panel">
           <view wx:if="{{favoriteStocks.length > 0}}">
             <view class="favorites-header">
               <text class="favorites-count">共 {{favoriteStocks.length}} 只股票</text>
@@ -218,8 +224,8 @@
             <text class="empty-text">暂无自选</text>
             <text class="empty-tip">搜索并加入感兴趣的股票</text>
           </view>
-        </view>
-      </view>
+        </swiper-item>
+      </swiper>
     </view>
   </view>
 </view>
