@@ -11,7 +11,7 @@ class StockAPI {
     this.maxRetries = 2
     this.baseConfig = {
       env: "prod-1gs83ryma8b2a51f",
-      service: "test"
+      service: "bull"
     }
     // 添加缓存
     this.cache = new Map()
