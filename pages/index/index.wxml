@@ -12,14 +12,13 @@
     
     <!-- 搜索栏 -->
     <view class="search-header">
-      <view class="search-input-wrapper">
+      <view class="search-input-wrapper {{keyword || showResults ? '' : 'full-width'}}">
         <text class="search-icon">🔍</text>
         <input 
           class="search-input"
           placeholder="搜索股票代码或名称"
           value="{{keyword}}"
           bindinput="onInputChange"
-          focus="{{true}}"
           confirm-type="search"
         />
         <text 
@@ -28,7 +27,11 @@
           bindtap="onClearInput"
         >✕</text>
       </view>
-      <text class="cancel-btn" bindtap="onCancel">取消</text>
+      <text 
+        wx:if="{{keyword || showResults}}"
+        class="cancel-btn" 
+        bindtap="onCancel"
+      >取消</text>
     </view>
 
     <!-- 标签栏 -->

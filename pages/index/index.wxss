@@ -86,6 +86,10 @@
   margin-right: 20rpx;
 }
 
+.search-input-wrapper.full-width {
+  margin-right: 0;
+}
+
 .search-icon {
   font-size: 32rpx;
   margin-right: 16rpx;
