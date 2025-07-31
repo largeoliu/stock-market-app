@@ -30,7 +30,7 @@ Page({
     indicatorPosition: 0, // 初始在第一个位置，完全贴合左边
     indicatorWidth: 130, // 大概的宽度，会在页面渲染后重新计算
     historyData: [],
-    loading: true,
+    loading: false,
     chartLoading: false,
     chartError: false,
     
@@ -118,7 +118,8 @@ Page({
   // 加载股票数据
   async loadStockData() {
     try {
-      util.showLoading('加载中...')
+      // 只使用页面内的loading，不使用全局loading
+      this.setData({ loading: true })
       
       if (this.data.currentDataType === 'marketCap') {
         await this.loadMarketCapData()
@@ -132,11 +133,9 @@ Page({
       }, 150)
       
       this.setData({ loading: false })
-      util.hideLoading()
     } catch (error) {
       console.error('加载股票数据失败:', error)
       this.setData({ loading: false })
-      util.hideLoading()
       util.showToast('加载失败，请重试')
     }
   },
