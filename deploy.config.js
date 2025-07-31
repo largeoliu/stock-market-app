@@ -1,6 +1,6 @@
 module.exports = {
-  "version": "1.0.3",
-  "desc": "修复忽略文件配置格式",
+  "version": "1.0.4",
+  "desc": "添加用户行为埋点功能",
   "outputPath": "./dist",
   "ignoreFiles": [
     "node_modules/**/*",
@@ -31,6 +31,6 @@ module.exports = {
     "beforeDeploy": [],
     "afterDeploy": []
   },
-  "lastUpload": "2025-07-31T03:40:22.942Z",
+  "lastUpload": "2025-07-31T06:41:53.768Z",
   "deployHistory": []
 };

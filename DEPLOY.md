@@ -6,36 +6,6 @@
 - 前往 [微信公众平台](https://mp.weixin.qq.com/) 注册小程序账号
 - 获取小程序的 AppID
 
-### 2. 股票数据API
-选择并配置一个股票数据API服务：
-
-#### 推荐API选项：
-
-**Alpha Vantage (推荐)**
-- 免费额度：每分钟5次请求，每天500次
-- 注册地址：https://www.alphavantage.co/
-- 优点：数据准确，支持全球股票
-
-**Yahoo Finance API**
-- 免费但需要处理跨域
-- 数据丰富，更新及时
-
-**腾讯财经API**
-- 适合A股和港股
-- 响应速度快
-
-### 3. 服务器域名配置
-在微信公众平台配置request合法域名：
-```
-https://www.alphavantage.co
-https://smartbox.gtimg.cn
-https://hq.sinajs.cn
-https://quotes.money.163.com
-https://qt.gtimg.cn
-```
-
-**注意**：由于各API的访问限制不同，建议配置多个域名作为备用。
-
 ## 部署步骤
 
 ### 1. 修改配置
@@ -45,16 +15,6 @@ https://qt.gtimg.cn
 {
   "appid": "你的小程序AppID",
   "projectname": "stock-market-cap"
-}
-```
-
-**配置API接口 (utils/api.js)**
-```javascript
-class StockAPI {
-  constructor() {
-    this.baseUrl = 'https://api.alphavantage.co' // 替换为实际API
-    this.apiKey = 'YOUR_API_KEY' // 添加API密钥
-  }
 }
 ```
 
@@ -147,13 +107,6 @@ async searchStock(keyword) {
 - 使用WebSocket获取实时数据（可选）
 
 ## 常见问题
-
-### Q: Alpha Vantage API超时或限制？
-A: 
-1. 检查API密钥是否正确
-2. Alpha Vantage免费版每分钟只能请求5次，每天500次
-3. 项目已集成备用API（腾讯财经、新浪财经），会自动切换
-4. 可以等待几分钟后重试，或考虑升级到付费版本
 
 ### Q: 图表不显示？
 A: 检查ECharts组件是否正确引入，确保canvas权限已开启

@@ -1,6 +1,7 @@
 // pages/search/search.js
 const stockAPI = require('../../utils/api.js')
 const util = require('../../utils/util.js')
+const track = require('../../utils/track.js')
 
 Page({
   data: {
@@ -82,6 +83,13 @@ Page({
   // 标签页切换
   onTabChange(e) {
     const tab = e.currentTarget.dataset.tab
+    const currentTab = this.data.currentTab
+    
+    // 埋点：Tab切换
+    if (currentTab !== tab) {
+      track.tabSwitch(currentTab, tab)
+    }
+    
     this.setData({ currentTab: tab })
     
     // 触觉反馈
@@ -121,6 +129,9 @@ Page({
       
       const results = await stockAPI.searchStock(keyword)
       
+      // 埋点：搜索提交
+      track.searchSubmit(keyword, results.length)
+      
       this.setData({
         searchResults: results,
         showResults: true,
@@ -136,12 +147,18 @@ Page({
   // 点击搜索结果
   onResultTap(e) {
     const stock = e.currentTarget.dataset.stock
+    const index = e.currentTarget.dataset.index || 0
+    
+    // 埋点：点击搜索结果
+    track.searchResultClick(stock.symbol, stock.name, index)
+    
     this.selectStock(stock)
   },
 
   // 点击热门股票
   onHotStockTap(e) {
     const hotStock = e.currentTarget.dataset.stock
+    const index = e.currentTarget.dataset.index || 0
     
     // 直接使用热门股票数据跳转到详情页，不调用搜索接口
     const stock = {
@@ -150,6 +167,9 @@ Page({
       market: hotStock.market || 'A股'
     }
     
+    // 埋点：点击热门股票
+    track.hotStockClick(stock.symbol, stock.name, index)
+    
     console.log('热门股票点击跳转:', stock)
     this.selectStock(stock)
   },
@@ -157,6 +177,10 @@ Page({
   // 点击最近搜索
   onRecentTap(e) {
     const stock = e.currentTarget.dataset.stock
+    
+    // 埋点：点击历史搜索
+    track.recentSearchClick(stock.symbol, stock.name)
+    
     this.selectStock(stock)
   },
 
@@ -203,11 +227,16 @@ Page({
 
   // 清除所有搜索记录
   clearAllRecentSearches() {
+    const historyCount = this.data.recentSearches.length
+    
     wx.showModal({
       title: '提示',
       content: '确定要清除所有搜索记录吗？',
       success: (res) => {
         if (res.confirm) {
+          // 埋点：清空搜索历史
+          track.clearSearchHistory(historyCount)
+          
           util.removeStorage('recent_searches')
           this.setData({ recentSearches: [] })
           util.showToast('已清除', 'success')
@@ -321,11 +350,16 @@ Page({
       return
     }
     
+    const favoriteCount = this.data.favoriteStocks.length
+    
     wx.showModal({
       title: '确认清空',
       content: '确定要清空所有自选吗？此操作不可恢复。',
       success: (res) => {
         if (res.confirm) {
+          // 埋点：清空自选股
+          track.clearFavorites(favoriteCount)
+          
           util.removeStorage('favorite_stocks')
           
           const app = getApp()

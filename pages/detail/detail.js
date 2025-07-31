@@ -1,6 +1,7 @@
 // pages/detail/detail.js
 const stockAPI = require('../../utils/api.js')
 const util = require('../../utils/util.js')
+const track = require('../../utils/track.js')
 
 Page({
   data: {
@@ -394,6 +395,11 @@ Page({
     
     if (dataType === this.data.currentDataType) return
 
+    const fromType = this.data.currentDataType
+    
+    // 埋点：数据类型切换
+    track.dataTypeSwitch(fromType, dataType, this.data.stock.symbol, this.data.currentPeriod)
+
     // 触觉反馈
     wx.vibrateShort({
       type: 'light',
@@ -438,6 +444,11 @@ Page({
     const index = parseInt(e.currentTarget.dataset.index)
     
     if (period === this.data.currentPeriod) return
+
+    const fromPeriod = this.data.currentPeriod
+    
+    // 埋点：时间段切换
+    track.periodSwitch(fromPeriod, period, this.data.stock.symbol, this.data.currentDataType)
 
     // 触觉反馈（静默失败，不影响主要功能）
     wx.vibrateShort({
@@ -484,6 +495,10 @@ Page({
   // 分享
   onShareAppMessage() {
     const { stock } = this.data
+    
+    // 埋点：分享点击
+    track.shareClick(stock.symbol, stock.name)
+    
     return {
       title: `${stock.name}(${stock.symbol}) 市值走势`,
       path: `/pages/detail/detail?symbol=${stock.symbol}&name=${stock.name}&market=${stock.market}`
@@ -501,6 +516,10 @@ Page({
     if (index > -1) {
       // 取消自选
       favoriteStocks.splice(index, 1)
+      
+      // 埋点：取消自选
+      track.favoriteRemove(stock.symbol, stock.name, 'detail')
+      
       util.showToast('已取消自选', 'success')
     } else {
       // 添加自选
@@ -510,6 +529,10 @@ Page({
         market: stock.market,
         timestamp: Date.now()
       })
+      
+      // 埋点：添加自选
+      track.favoriteAdd(stock.symbol, stock.name, 'detail')
+      
       util.showToast('已加入自选', 'success')
     }
     

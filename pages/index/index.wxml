@@ -75,6 +75,7 @@
         wx:key="symbol"
         class="result-item"
         data-stock="{{item}}"
+        data-index="{{index}}"
         bindtap="onResultTap"
       >
         <view class="stock-info">
@@ -125,6 +126,7 @@
               wx:key="name"
               class="hot-stock-item"
               data-stock="{{item}}"
+              data-index="{{index}}"
               bindtap="onHotStockTap"
             >
               <view class="hot-stock-rank">{{item.rank}}</view>
