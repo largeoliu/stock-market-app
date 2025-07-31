@@ -1,5 +1,5 @@
 module.exports = {
-  "version": "1.0.5",
+  "version": "1.0.6",
   "desc": "添加用户行为埋点功能",
   "outputPath": "./dist",
   "ignoreFiles": [
@@ -31,6 +31,6 @@ module.exports = {
     "beforeDeploy": [],
     "afterDeploy": []
   },
-  "lastUpload": "2025-07-31T06:48:04.096Z",
+  "lastUpload": "2025-07-31T10:39:27.865Z",
   "deployHistory": []
 };
