@@ -1,0 +1,70 @@
+[
+  {
+    "dict_name": "page_source",
+    "dict_list": [
+      {
+        "key": "index",
+        "value": "首页"
+      },
+      {
+        "key": "detail",
+        "value": "详情页"
+      }
+    ]
+  },
+  {
+    "dict_name": "time_period",
+    "dict_list": [
+      {
+        "key": "1y",
+        "value": "1年"
+      },
+      {
+        "key": "3y",
+        "value": "3年"
+      },
+      {
+        "key": "5y",
+        "value": "5年"
+      },
+      {
+        "key": "10y",
+        "value": "10年"
+      },
+      {
+        "key": "max",
+        "value": "全部"
+      }
+    ]
+  },
+  {
+    "dict_name": "data_type",
+    "dict_list": [
+      {
+        "key": "marketCap",
+        "value": "总市值"
+      },
+      {
+        "key": "actualTurnover",
+        "value": "实际换手率"
+      }
+    ]
+  },
+  {
+    "dict_name": "tab_type",
+    "dict_list": [
+      {
+        "key": "hot",
+        "value": "热门搜索"
+      },
+      {
+        "key": "recent",
+        "value": "最近搜索"
+      },
+      {
+        "key": "favorites",
+        "value": "自选股"
+      }
+    ]
+  }
+]

@@ -1,0 +1,140 @@
+[
+  {
+    "event_id": "search_submit",
+    "event_name": "搜索提交",
+    "event_comment": "用户在搜索框中输入关键词并进行搜索",
+    "report_src": 0,
+    "event_key_list": [
+      "keyword",
+      "result_count",
+      "timestamp"
+    ]
+  },
+  {
+    "event_id": "search_result_click",
+    "event_name": "搜索结果点击",
+    "event_comment": "用户点击搜索结果中的某个股票",
+    "report_src": 0,
+    "event_key_list": [
+      "stock_symbol",
+      "stock_name",
+      "position",
+      "timestamp"
+    ]
+  },
+  {
+    "event_id": "hot_stock_click",
+    "event_name": "热门股票点击",
+    "event_comment": "用户点击热门搜索列表中的股票",
+    "report_src": 0,
+    "event_key_list": [
+      "stock_symbol",
+      "stock_name",
+      "position",
+      "timestamp"
+    ]
+  },
+  {
+    "event_id": "recent_search_click",
+    "event_name": "历史搜索点击",
+    "event_comment": "用户点击最近搜索记录中的股票",
+    "report_src": 0,
+    "event_key_list": [
+      "stock_symbol",
+      "stock_name",
+      "timestamp"
+    ]
+  },
+  {
+    "event_id": "favorite_add",
+    "event_name": "添加自选股",
+    "event_comment": "用户将股票添加到自选列表",
+    "report_src": 0,
+    "event_key_list": [
+      "stock_symbol",
+      "stock_name",
+      "source",
+      "timestamp"
+    ]
+  },
+  {
+    "event_id": "favorite_remove",
+    "event_name": "取消自选股",
+    "event_comment": "用户将股票从自选列表中移除",
+    "report_src": 0,
+    "event_key_list": [
+      "stock_symbol",
+      "stock_name",
+      "source",
+      "timestamp"
+    ]
+  },
+  {
+    "event_id": "period_switch",
+    "event_name": "时间段切换",
+    "event_comment": "用户在详情页切换查看不同时间段的数据",
+    "report_src": 0,
+    "event_key_list": [
+      "from_period",
+      "to_period",
+      "stock_symbol",
+      "data_type",
+      "timestamp"
+    ]
+  },
+  {
+    "event_id": "data_type_switch",
+    "event_name": "数据类型切换",
+    "event_comment": "用户在详情页切换查看不同类型的数据(市值/换手率)",
+    "report_src": 0,
+    "event_key_list": [
+      "from_type",
+      "to_type",
+      "stock_symbol",
+      "period",
+      "timestamp"
+    ]
+  },
+  {
+    "event_id": "share_click",
+    "event_name": "分享点击",
+    "event_comment": "用户点击分享按钮分享股票信息",
+    "report_src": 0,
+    "event_key_list": [
+      "stock_symbol",
+      "stock_name",
+      "timestamp"
+    ]
+  },
+  {
+    "event_id": "clear_search_history",
+    "event_name": "清空搜索历史",
+    "event_comment": "用户清空所有搜索历史记录",
+    "report_src": 0,
+    "event_key_list": [
+      "history_count",
+      "timestamp"
+    ]
+  },
+  {
+    "event_id": "clear_favorites",
+    "event_name": "清空自选股",
+    "event_comment": "用户清空所有自选股列表",
+    "report_src": 0,
+    "event_key_list": [
+      "favorite_count",
+      "timestamp"
+    ]
+  },
+  {
+    "event_id": "tab_switch",
+    "event_name": "Tab切换",
+    "event_comment": "用户在首页切换不同的Tab标签(热门搜索/最近搜索/自选股)",
+    "report_src": 0,
+    "event_key_list": [
+      "from_tab",
+      "to_tab",
+      "timestamp"
+    ]
+  }
+]

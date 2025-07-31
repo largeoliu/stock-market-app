@@ -1,0 +1,121 @@
+[
+  {
+    "key": "keyword",
+    "desc": "搜索关键词",
+    "comment": "用户输入的搜索关键词内容",
+    "key_type": "KEY_TYPE_STRING",
+    "dict_name": ""
+  },
+  {
+    "key": "result_count",
+    "desc": "搜索结果数量",
+    "comment": "搜索返回的结果条数",
+    "key_type": "KEY_TYPE_INT64",
+    "dict_name": ""
+  },
+  {
+    "key": "timestamp",
+    "desc": "时间戳",
+    "comment": "事件发生的时间戳",
+    "key_type": "KEY_TYPE_INT64",
+    "dict_name": ""
+  },
+  {
+    "key": "stock_symbol",
+    "desc": "股票代码",
+    "comment": "股票的唯一标识符代码",
+    "key_type": "KEY_TYPE_STRING",
+    "dict_name": ""
+  },
+  {
+    "key": "stock_name",
+    "desc": "股票名称",
+    "comment": "股票的中文名称",
+    "key_type": "KEY_TYPE_STRING",
+    "dict_name": ""
+  },
+  {
+    "key": "position",
+    "desc": "位置索引",
+    "comment": "在列表中的位置序号（从0开始）",
+    "key_type": "KEY_TYPE_INT64",
+    "dict_name": ""
+  },
+  {
+    "key": "source",
+    "desc": "来源页面",
+    "comment": "操作发生的页面来源",
+    "key_type": "KEY_TYPE_STRING",
+    "dict_name": "page_source"
+  },
+  {
+    "key": "from_period",
+    "desc": "原时间段",
+    "comment": "切换前的时间段选项",
+    "key_type": "KEY_TYPE_STRING",
+    "dict_name": "time_period"
+  },
+  {
+    "key": "to_period",
+    "desc": "新时间段",
+    "comment": "切换后的时间段选项",
+    "key_type": "KEY_TYPE_STRING",
+    "dict_name": "time_period"
+  },
+  {
+    "key": "data_type",
+    "desc": "数据类型",
+    "comment": "当前查看的数据类型",
+    "key_type": "KEY_TYPE_STRING",
+    "dict_name": "data_type"
+  },
+  {
+    "key": "from_type",
+    "desc": "原数据类型",
+    "comment": "切换前的数据类型",
+    "key_type": "KEY_TYPE_STRING",
+    "dict_name": "data_type"
+  },
+  {
+    "key": "to_type",
+    "desc": "新数据类型",
+    "comment": "切换后的数据类型",
+    "key_type": "KEY_TYPE_STRING",
+    "dict_name": "data_type"
+  },
+  {
+    "key": "period",
+    "desc": "时间段",
+    "comment": "当前选择的时间段",
+    "key_type": "KEY_TYPE_STRING",
+    "dict_name": "time_period"
+  },
+  {
+    "key": "history_count",
+    "desc": "历史记录数量",
+    "comment": "清空前的历史记录条数",
+    "key_type": "KEY_TYPE_INT64",
+    "dict_name": ""
+  },
+  {
+    "key": "favorite_count",
+    "desc": "自选股数量",
+    "comment": "清空前的自选股票数量",
+    "key_type": "KEY_TYPE_INT64",
+    "dict_name": ""
+  },
+  {
+    "key": "from_tab",
+    "desc": "原Tab标签",
+    "comment": "切换前的Tab标签",
+    "key_type": "KEY_TYPE_STRING",
+    "dict_name": "tab_type"
+  },
+  {
+    "key": "to_tab",
+    "desc": "新Tab标签",
+    "comment": "切换后的Tab标签",
+    "key_type": "KEY_TYPE_STRING",
+    "dict_name": "tab_type"
+  }
+]
