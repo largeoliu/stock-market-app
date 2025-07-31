@@ -1,7 +1,7 @@
 {
   "name": "stock-market-cap-miniprogram",
   "version": "1.0.0",
-  "description": "股票市值查询微信小程序",
+  "description": "股值通",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
