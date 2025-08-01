@@ -24,7 +24,9 @@ class WxUploader {
       preview: false,
       check: false,
       version: null,
-      desc: null
+      desc: null,
+      autoGit: true, // 默认自动提交git
+      noGit: false
     };
 
     for (let i = 0; i < args.length; i++) {
@@ -40,6 +42,13 @@ class WxUploader {
           break;
         case '--desc':
           parsed.desc = args[++i];
+          break;
+        case '--auto-git':
+          parsed.autoGit = true;
+          break;
+        case '--no-git':
+          parsed.noGit = true;
+          parsed.autoGit = false;
           break;
       }
     }
@@ -161,6 +170,53 @@ class WxUploader {
     this.success(`配置已更新 - 版本: ${version}`);
   }
 
+  async gitCommitAndPush(version, desc) {
+    this.log('开始提交代码到Git...');
+    
+    try {
+      // 检查git状态
+      try {
+        execSync('git status --porcelain', { stdio: 'pipe' });
+      } catch (error) {
+        this.warning('当前目录不是git仓库，跳过git操作');
+        return false;
+      }
+      
+      // 添加所有文件
+      this.log('添加文件到暂存区...');
+      execSync('git add .', { stdio: 'inherit' });
+      
+      // 提交
+      const commitMessage = `release: v${version} - ${desc}
+
+🚀 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>`;
+      
+      this.log(`提交代码: ${commitMessage.split('\n')[0]}`);
+      execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
+      
+      // 添加tag
+      this.log(`创建版本标签: v${version}`);
+      execSync(`git tag -a v${version} -m "Release v${version}: ${desc}"`, { stdio: 'inherit' });
+      
+      // 推送到远程
+      this.log('推送到远程仓库...');
+      execSync('git push origin main', { stdio: 'inherit' });
+      execSync('git push origin --tags', { stdio: 'inherit' });
+      
+      this.success('代码已成功提交并推送到远程仓库！');
+      this.success(`版本标签 v${version} 已创建`);
+      
+      return true;
+      
+    } catch (error) {
+      this.error(`Git操作失败: ${error.message}`);
+      this.warning('小程序已上传成功，但Git提交失败');
+      return false;
+    }
+  }
+
   async upload() {
     const version = this.getNextVersion();
     const desc = this.args.desc || this.config.desc || '版本更新';
@@ -186,10 +242,32 @@ class WxUploader {
         cwd: this.projectPath
       });
       
-      child.on('close', (code) => {
+      child.on('close', async (code) => {
         if (code === 0) {
           this.success('小程序上传成功！');
           this.updateConfig(version, desc);
+          
+          let gitOperationSuccess = false;
+          
+          // 根据参数决定是否执行git操作
+          if (this.args.autoGit && !this.args.noGit) {
+            gitOperationSuccess = await this.gitCommitAndPush(version, desc);
+          } else {
+            this.log('跳过Git操作（使用了 --no-git 参数）');
+          }
+          
+          this.log('');
+          this.success('=== 部署完成 ===');
+          this.log('✅ 小程序已上传');
+          
+          if (gitOperationSuccess) {
+            this.log('✅ 代码已提交到Git');
+            this.log('✅ 版本标签已创建');
+          } else {
+            this.log('⚠️  Git操作已跳过');
+          }
+          
+          this.log('');
           this.log('请前往微信公众平台提交审核');
           this.log('https://mp.weixin.qq.com/');
         } else {

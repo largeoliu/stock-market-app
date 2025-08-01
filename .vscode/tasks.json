@@ -86,6 +86,46 @@
       },
       "problemMatcher": [],
       "detail": "检查微信开发者工具CLI和项目配置"
+    },
+    {
+      "label": "微信小程序：上传+提交Git",
+      "type": "shell",
+      "command": "node",
+      "args": ["scripts/wx-upload.js", "--auto-git"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "detail": "上传小程序并自动提交到Git（默认任务）"
+    },
+    {
+      "label": "微信小程序：仅上传",
+      "type": "shell",
+      "command": "node",
+      "args": ["scripts/wx-upload.js", "--no-git"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "detail": "只上传小程序，不提交Git"
     }
   ],
   "inputs": [
