@@ -55,7 +55,12 @@ describe('自选股API接口测试', () => {
         fail: expect.any(Function)
       })
       
-      expect(result).toEqual({ success: true, message: '添加成功' })
+      expect(result).toEqual({ 
+        success: true, 
+        message: '添加成功',
+        statusCode: 200,
+        isNew: expect.any(Boolean)
+      })
     })
 
     test('addFavorite 应能处理请求失败', async () => {

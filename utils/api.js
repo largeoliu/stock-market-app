@@ -365,12 +365,28 @@ class StockAPI {
   formatHotSearchData(rawData) {
     console.log('formatHotSearchData: 原始数据', rawData)
     
-    // 处理新的API格式：直接返回数组
-    if (Array.isArray(rawData)) {
+    // 处理新的API格式：{data: []}
+    let dataArray = []
+    if (rawData.data && Array.isArray(rawData.data)) {
+      console.log('formatHotSearchData: 使用新的API格式 {data: []}')
+      dataArray = rawData.data
+    } else if (Array.isArray(rawData)) {
+      console.log('formatHotSearchData: 数据格式为直接数组')
+      dataArray = rawData
+    } else if (rawData.results && Array.isArray(rawData.results)) {
+      console.log('formatHotSearchData: 数据格式为 {results: []}')
+      dataArray = rawData.results
+    } else {
+      console.log('formatHotSearchData: 未识别的数据格式')
+      return { results: [] }
+    }
+    
+    // 处理数据格式化
+    if (dataArray.length > 0) {
       // 使用Map去重，以code作为唯一标识
       const uniqueMap = new Map()
       
-      rawData.forEach((item) => {
+      dataArray.forEach((item) => {
         const code = item.code || item.symbol || item.stock_code
         if (code && !uniqueMap.has(code)) {
           uniqueMap.set(code, {
@@ -386,7 +402,7 @@ class StockAPI {
 
       const formattedResults = Array.from(uniqueMap.values())
       
-      console.log('formatHotSearchData: 去重前数量', rawData.length)
+      console.log('formatHotSearchData: 去重前数量', dataArray.length)
       console.log('formatHotSearchData: 去重后数量', formattedResults.length)
       console.log('formatHotSearchData: 格式化后数据', formattedResults.slice(0, 3))
 
@@ -531,10 +547,24 @@ class StockAPI {
       return []
     }
 
-    // 处理不同的API响应格式
+    // 处理新的API响应格式: {dates: [], values: [], unit: "亿元"}
+    if (rawData.dates && rawData.values && Array.isArray(rawData.dates) && Array.isArray(rawData.values)) {
+      console.log('formatHistoryData: 使用新的API格式 {dates, values}')
+      
+      const formattedData = rawData.dates.map((date, index) => ({
+        date: date,
+        marketCap: parseFloat(rawData.values[index] || 0),
+        price: 0 // 新格式中没有价格数据
+      })).filter(item => !isNaN(item.marketCap) && item.marketCap > 0)
+      
+      console.log('formatHistoryData: 新格式数据长度:', formattedData.length)
+      return formattedData
+    }
+
+    // 兼容旧的API响应格式
     let dataArray = []
     
-    // 如果直接是数组（新的API响应格式）
+    // 如果直接是数组
     if (Array.isArray(rawData)) {
       console.log('formatHistoryData: 数据格式为直接数组')
       dataArray = rawData
@@ -688,9 +718,12 @@ class StockAPI {
         success: (res) => {
           console.log('添加自选股响应:', res)
           if (res.statusCode === 200) {
-            // 清除相关缓存，确保下次获取最新数据
+            // 操作成功（根据返回的message判断是新添加还是已存在）
             this.cache.delete('/favorites')
-            resolve(res.data)
+            const isNew = res.data.message === "添加自选成功"
+            resolve({ ...res.data, statusCode: 200, isNew })
+          } else if (res.statusCode === 404) {
+            reject(new Error('股票代码不存在'))
           } else {
             reject(new Error(`添加自选股失败: ${res.statusCode}`))
           }
@@ -716,6 +749,12 @@ class StockAPI {
     // 生成缓存键
     const cacheKey = '/favorites'
     
+    // 防止并发请求 - 检查是否有正在进行的请求
+    if (this._getFavoritesPromise) {
+      console.log('复用正在进行的getFavorites请求')
+      return this._getFavoritesPromise
+    }
+    
     // 尝试从缓存获取数据（使用较短的缓存时间，1分钟）
     const cachedData = this.getFromCache(cacheKey, 60 * 1000)
     if (cachedData) {
@@ -724,7 +763,8 @@ class StockAPI {
     
     console.log('获取自选股列表')
     
-    return await new Promise((resolve, reject) => {
+    // 创建请求Promise并缓存
+    this._getFavoritesPromise = new Promise((resolve, reject) => {
       wx.cloud.callContainer({
         config: {
           env: this.baseConfig.env
@@ -737,6 +777,9 @@ class StockAPI {
         timeout: this.timeout,
         success: (res) => {
           console.log('获取自选股列表响应:', res)
+          // 清除请求缓存
+          this._getFavoritesPromise = null
+          
           if (res.statusCode === 200) {
             const formattedData = this.formatFavoritesData(res.data)
             // 将结果存入缓存
@@ -748,6 +791,9 @@ class StockAPI {
         },
         fail: (err) => {
           console.error('获取自选股列表请求失败:', err)
+          // 清除请求缓存
+          this._getFavoritesPromise = null
+          
           const errorMsg = err.errMsg || 'unknown error'
           if (errorMsg.includes('timeout') || errorMsg.includes('超时')) {
             reject(new Error(`请求超时，请检查网络连接`))
@@ -757,6 +803,8 @@ class StockAPI {
         }
       })
     })
+    
+    return this._getFavoritesPromise
   }
 
   /**
@@ -783,7 +831,7 @@ class StockAPI {
         success: (res) => {
           console.log('删除自选股响应:', res)
           if (res.statusCode === 200) {
-            // 清除相关缓存
+            // 操作成功（包括删除成功和股票不存在两种情况）
             this.cache.delete('/favorites')
             resolve(res.data)
           } else {
@@ -866,6 +914,18 @@ class StockAPI {
       
       console.log('需要上传到服务端的股票数量:', needUpload.length)
       
+      if (needUpload.length === 0) {
+        console.log('无需上传数据，直接返回服务端数据')
+        return {
+          ...serverFavorites,
+          syncResult: {
+            uploaded: 0,
+            failed: 0,
+            total: 0
+          }
+        }
+      }
+      
       // 4. 控制并发，分批上传
       let successCount = 0
       let failCount = 0
@@ -888,9 +948,22 @@ class StockAPI {
       
       console.log(`数据迁移完成: 成功${successCount}个, 失败${failCount}个`)
       
-      // 5. 清除缓存并重新获取完整的服务端数据
+      // 5. 重新构建最终数据，复用服务端数据避免二次请求
+      const uploadedStocks = needUpload.slice(0, successCount).map(stock => ({
+        symbol: stock.symbol,
+        name: stock.name,
+        market: stock.market || this.determineMarket(stock.symbol),
+        timestamp: Date.now(),
+        created_at: new Date().toISOString()
+      }))
+      
+      const finalData = {
+        count: serverFavorites.count + successCount,
+        favorites: [...serverFavorites.favorites, ...uploadedStocks]
+      }
+      
+      // 清除缓存确保下次获取最新数据
       this.cache.delete('/favorites')
-      const finalData = await this.getFavorites()
       
       return {
         ...finalData,

@@ -66,8 +66,9 @@ const appInstance = {
         } else if (total > 0) {
           console.log(`数据迁移完成: 成功上传${uploaded}个，失败${failed}个，共${total}个`)
           
-          // 更新全局数据
+          // 更新全局数据和本地存储
           this.globalData.favoriteStocks = syncResult.favorites || []
+          wx.setStorageSync('favorite_stocks', syncResult.favorites || [])
           
           // 显示迁移结果提示（只在有实际上传时显示）
           if (uploaded > 0) {
@@ -81,17 +82,23 @@ const appInstance = {
           }
         } else {
           console.log('无需迁移数据，使用服务端现有数据')
-          // 更新本地全局数据
+          // 更新本地全局数据和存储
           this.globalData.favoriteStocks = syncResult.favorites || []
+          wx.setStorageSync('favorite_stocks', syncResult.favorites || [])
         }
         
-        // 标记迁移完成
+        // 标记迁移完成，并存储迁移结果供页面使用
         wx.setStorageSync(migrationKey, true)
+        wx.setStorageSync('migration_sync_result', syncResult)
+        
+        // 通知首页数据已准备好
+        this.globalData.favoritesReady = true
       }
       
     } catch (error) {
       console.error('自选股数据迁移失败:', error)
       // 迁移失败不影响小程序正常使用，继续使用本地数据
+      this.globalData.favoritesReady = true
     }
   },
 

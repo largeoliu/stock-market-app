@@ -543,11 +543,17 @@ Page({
         track.favoriteRemove(stock.symbol, stock.name, 'detail')
         util.showToast('已取消自选', 'success')
       } else {
-        await stockAPI.addFavorite(stock.symbol)
+        const result = await stockAPI.addFavorite(stock.symbol)
         
         // 埋点：添加自选
         track.favoriteAdd(stock.symbol, stock.name, 'detail')
-        util.showToast('已加入自选', 'success')
+        
+        // 根据API返回状态显示不同提示
+        if (result.isNew) {
+          util.showToast('已加入自选', 'success')
+        } else {
+          util.showToast('股票已在自选中', 'none')
+        }
       }
       
       console.log(`自选股${isRemoving ? '删除' : '添加'}成功:`, stock.name)
@@ -558,6 +564,16 @@ Page({
     } catch (error) {
       console.error(`自选股${isRemoving ? '删除' : '添加'}失败:`, error.message)
       
+      // 根据错误类型显示不同提示
+      let errorMessage = ''
+      if (error.message.includes('股票代码不存在')) {
+        errorMessage = '股票代码不存在'
+      } else if (error.message.includes('timeout') || error.message.includes('超时')) {
+        errorMessage = '网络超时，请重试'
+      } else {
+        errorMessage = `${isRemoving ? '取消' : '添加'}自选失败，请重试`
+      }
+      
       // 服务端操作失败，回滚本地状态
       if (isRemoving) {
         // 重新添加到本地
@@ -567,15 +583,15 @@ Page({
           market: stock.market,
           timestamp: Date.now()
         })
-        util.showToast('取消自选失败，请重试', 'error')
       } else {
         // 从本地移除
         const rollbackIndex = favoriteStocks.findIndex(item => item.symbol === stock.symbol)
         if (rollbackIndex > -1) {
           favoriteStocks.splice(rollbackIndex, 1)
         }
-        util.showToast('添加自选失败，请重试', 'error')
       }
+      
+      util.showToast(errorMessage, 'error')
       
       // 更新回滚后的状态
       app.globalData.favoriteStocks = favoriteStocks

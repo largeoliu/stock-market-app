@@ -41,11 +41,15 @@ Page({
 
   async onShow() {
     this.loadRecentSearches()
-    await this.loadFavorites()
-    // 只在首次加载时设置默认tab
+    
+    // 只在首次加载时重新加载自选股，其他时候依赖缓存或其他页面的通知刷新
     if (this.data.isFirstLoad) {
+      await this.loadFavorites()
       this.setDefaultTab()
       this.setData({ isFirstLoad: false })
+    } else {
+      // 非首次进入时，只检查本地缓存更新UI，不发起网络请求
+      this.updateFavoritesFromLocal()
     }
   },
 
@@ -321,29 +325,70 @@ Page({
     })
   },
 
+  // 从本地缓存更新自选股列表（不发起网络请求）
+  updateFavoritesFromLocal() {
+    try {
+      const localFavorites = util.getStorage('favorite_stocks', [])
+      
+      // 按自选时间倒序排序（最新自选的在前面）
+      const sortedStocks = localFavorites.sort((a, b) => {
+        const timeA = a.timestamp || 0
+        const timeB = b.timestamp || 0
+        return timeB - timeA // 倒序排列
+      })
+      
+      this.setData({
+        favoriteStocks: sortedStocks
+      })
+      
+      // 同步全局数据
+      const app = getApp()
+      app.globalData.favoriteStocks = sortedStocks
+      
+      console.log('从本地缓存更新自选股列表:', sortedStocks.length, '只')
+    } catch (error) {
+      console.error('从本地缓存更新自选股失败:', error)
+    }
+  },
+
   // 加载自选列表
   async loadFavorites() {
     try {
       console.log('开始加载自选股列表')
       
-      // 优先从服务端获取数据
+      // 检查app.js是否已经完成数据迁移
+      const app = getApp()
+      const migrationCompleted = wx.getStorageSync('favorites_migration_completed')
+      const migrationResult = wx.getStorageSync('migration_sync_result')
+      
       let favoriteData
-      try {
-        favoriteData = await stockAPI.getFavorites()
-        console.log('从服务端获取自选股成功:', favoriteData.count, '只')
+      
+      if (migrationCompleted && migrationResult) {
+        // 如果迁移已完成，直接使用迁移结果，避免重复请求
+        console.log('使用app.js迁移结果，避免重复请求')
+        favoriteData = migrationResult
         
-        // 更新本地存储作为缓存
-        if (favoriteData.favorites && favoriteData.favorites.length > 0) {
-          util.setStorage('favorite_stocks', favoriteData.favorites)
-        }
-      } catch (error) {
-        console.error('从服务端获取自选股失败，使用本地数据:', error.message)
-        
-        // 降级到本地数据
-        const localFavorites = util.getStorage('favorite_stocks', [])
-        favoriteData = {
-          count: localFavorites.length,
-          favorites: localFavorites
+        // 清除迁移结果缓存，避免下次误用
+        wx.removeStorageSync('migration_sync_result')
+      } else {
+        // 如果迁移未完成或失败，则发起网络请求
+        try {
+          favoriteData = await stockAPI.getFavorites()
+          console.log('从服务端获取自选股成功:', favoriteData.count, '只')
+          
+          // 更新本地存储作为缓存
+          if (favoriteData.favorites && favoriteData.favorites.length > 0) {
+            util.setStorage('favorite_stocks', favoriteData.favorites)
+          }
+        } catch (error) {
+          console.error('从服务端获取自选股失败，使用本地数据:', error.message)
+          
+          // 降级到本地数据
+          const localFavorites = util.getStorage('favorite_stocks', [])
+          favoriteData = {
+            count: localFavorites.length,
+            favorites: localFavorites
+          }
         }
       }
       
