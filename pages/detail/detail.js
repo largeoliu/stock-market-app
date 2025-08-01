@@ -400,7 +400,7 @@ Page({
 
     // 判断流动性类型
     const liquidityType = currentTurnover < 5 ? 'discount' : 'premium'
-    const liquidityLabel = currentTurnover < 5 ? '流动性折价' : '流动性溢价'
+    const liquidityLabel = currentTurnover < 5 ? '低流动性' : '高流动性'
 
     const turnoverStatsData = {
       currentTurnover: currentTurnover.toFixed(2),

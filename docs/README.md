@@ -20,7 +20,7 @@
 
 ### 🔄 实际换手率分析
 - 实际换手率历史数据
-- 流动性折价/溢价判断
+- 低流动性/溢价判断
 - 稳定股东比例展示
 
 ### ⭐ 个人中心
@@ -108,7 +108,7 @@ const percentile = ((countBelow / dataArray.length) * 100).toFixed(1)
 ```javascript
 // 基于实际换手率判断流动性
 const liquidityType = currentTurnover < 5 ? 'discount' : 'premium'
-const liquidityLabel = currentTurnover < 5 ? '流动性折价' : '流动性溢价'
+const liquidityLabel = currentTurnover < 5 ? '低流动性' : '高流动性'
 ```
 
 ## 开发规范
