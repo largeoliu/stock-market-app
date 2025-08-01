@@ -61,6 +61,9 @@ global.wx = {
 // 模拟小程序页面构造函数
 global.Page = jest.fn()
 
+// 模拟小程序应用构造函数
+global.App = jest.fn()
+
 // 模拟小程序应用实例
 global.getApp = jest.fn(() => ({
   globalData: {
