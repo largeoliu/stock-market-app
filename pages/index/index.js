@@ -21,7 +21,7 @@ Page({
     tabList: ['hot', 'recent', 'favorites'] // tab列表，对应swiper的索引
   },
 
-  onLoad() {
+  async onLoad() {
     // 获取系统信息，设置安全区域
     const systemInfo = wx.getSystemInfoSync()
     this.setData({
@@ -30,7 +30,7 @@ Page({
     
     this.loadRecentSearches()
     this.loadHotStocks()
-    this.loadFavorites()
+    await this.loadFavorites()
     
     // 检查自选股，如果有自选股则默认显示自选tab
     this.setDefaultTab()
@@ -39,9 +39,9 @@ Page({
     this.debouncedSearch = util.debounce(this.performSearch.bind(this), 500)
   },
 
-  onShow() {
+  async onShow() {
     this.loadRecentSearches()
-    this.loadFavorites()
+    await this.loadFavorites()
     // 只在首次加载时设置默认tab
     if (this.data.isFirstLoad) {
       this.setDefaultTab()
@@ -322,12 +322,33 @@ Page({
   },
 
   // 加载自选列表
-  loadFavorites() {
+  async loadFavorites() {
     try {
-      const favoriteStocks = util.getStorage('favorite_stocks', [])
+      console.log('开始加载自选股列表')
+      
+      // 优先从服务端获取数据
+      let favoriteData
+      try {
+        favoriteData = await stockAPI.getFavorites()
+        console.log('从服务端获取自选股成功:', favoriteData.count, '只')
+        
+        // 更新本地存储作为缓存
+        if (favoriteData.favorites && favoriteData.favorites.length > 0) {
+          util.setStorage('favorite_stocks', favoriteData.favorites)
+        }
+      } catch (error) {
+        console.error('从服务端获取自选股失败，使用本地数据:', error.message)
+        
+        // 降级到本地数据
+        const localFavorites = util.getStorage('favorite_stocks', [])
+        favoriteData = {
+          count: localFavorites.length,
+          favorites: localFavorites
+        }
+      }
       
       // 按自选时间倒序排序（最新自选的在前面）
-      const sortedStocks = favoriteStocks.sort((a, b) => {
+      const sortedStocks = favoriteData.favorites.sort((a, b) => {
         const timeA = a.timestamp || 0
         const timeB = b.timestamp || 0
         return timeB - timeA // 倒序排列
@@ -335,14 +356,27 @@ Page({
       
       console.log('自选列表排序后:', sortedStocks.map(s => ({ name: s.name, time: s.timestamp })))
       
-      // 直接使用排序后的数据，不需要格式化时间
-      const formattedStocks = sortedStocks
-      
       this.setData({
-        favoriteStocks: formattedStocks
+        favoriteStocks: sortedStocks
       })
+      
+      // 同步全局数据
+      app.globalData.favoriteStocks = sortedStocks
+      
     } catch (error) {
       console.error('加载自选列表失败:', error)
+      
+      // 最后的降级方案：使用本地数据
+      const localFavorites = util.getStorage('favorite_stocks', [])
+      const sortedStocks = localFavorites.sort((a, b) => {
+        const timeA = a.timestamp || 0
+        const timeB = b.timestamp || 0
+        return timeB - timeA
+      })
+      
+      this.setData({
+        favoriteStocks: sortedStocks
+      })
     }
   },
 

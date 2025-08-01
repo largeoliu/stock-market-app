@@ -583,6 +583,271 @@ class StockAPI {
     const sign = change >= 0 ? '+' : ''
     return `${sign}${change.toFixed(2)} (${sign}${changePercent.toFixed(2)}%)`
   }
+
+  /**
+   * 添加自选股
+   * @param {string} stockCode - 股票代码
+   * @returns {Promise} 添加结果
+   */
+  async addFavorite(stockCode) {
+    const cleanCode = this.cleanSymbol(stockCode)
+    
+    console.log('添加自选股请求参数:', { stock_code: cleanCode })
+    
+    return await new Promise((resolve, reject) => {
+      wx.cloud.callContainer({
+        config: {
+          env: this.baseConfig.env
+        },
+        path: '/favorites',
+        header: {
+          "X-WX-SERVICE": this.baseConfig.service,
+          "Content-Type": "application/json"
+        },
+        method: "POST",
+        data: {
+          stock_code: cleanCode
+        },
+        timeout: this.timeout,
+        success: (res) => {
+          console.log('添加自选股响应:', res)
+          if (res.statusCode === 200) {
+            // 清除相关缓存，确保下次获取最新数据
+            this.cache.delete('/favorites')
+            resolve(res.data)
+          } else {
+            reject(new Error(`添加自选股失败: ${res.statusCode}`))
+          }
+        },
+        fail: (err) => {
+          console.error('添加自选股请求失败:', err)
+          const errorMsg = err.errMsg || 'unknown error'
+          if (errorMsg.includes('timeout') || errorMsg.includes('超时')) {
+            reject(new Error(`请求超时，请检查网络连接`))
+          } else {
+            reject(new Error(`添加自选股失败: ${errorMsg}`))
+          }
+        }
+      })
+    })
+  }
+
+  /**
+   * 获取自选股列表
+   * @returns {Promise} 自选股数据
+   */
+  async getFavorites() {
+    // 生成缓存键
+    const cacheKey = '/favorites'
+    
+    // 尝试从缓存获取数据（使用较短的缓存时间，1分钟）
+    const cachedData = this.getFromCache(cacheKey, 60 * 1000)
+    if (cachedData) {
+      return cachedData
+    }
+    
+    console.log('获取自选股列表')
+    
+    return await new Promise((resolve, reject) => {
+      wx.cloud.callContainer({
+        config: {
+          env: this.baseConfig.env
+        },
+        path: '/favorites',
+        header: {
+          "X-WX-SERVICE": this.baseConfig.service
+        },
+        method: "GET",
+        timeout: this.timeout,
+        success: (res) => {
+          console.log('获取自选股列表响应:', res)
+          if (res.statusCode === 200) {
+            const formattedData = this.formatFavoritesData(res.data)
+            // 将结果存入缓存
+            this.setToCache(cacheKey, formattedData)
+            resolve(formattedData)
+          } else {
+            reject(new Error(`获取自选股列表失败: ${res.statusCode}`))
+          }
+        },
+        fail: (err) => {
+          console.error('获取自选股列表请求失败:', err)
+          const errorMsg = err.errMsg || 'unknown error'
+          if (errorMsg.includes('timeout') || errorMsg.includes('超时')) {
+            reject(new Error(`请求超时，请检查网络连接`))
+          } else {
+            reject(new Error(`获取自选股列表失败: ${errorMsg}`))
+          }
+        }
+      })
+    })
+  }
+
+  /**
+   * 删除自选股
+   * @param {string} stockCode - 股票代码
+   * @returns {Promise} 删除结果
+   */
+  async removeFavorite(stockCode) {
+    const cleanCode = this.cleanSymbol(stockCode)
+    
+    console.log('删除自选股请求参数:', { stock_code: cleanCode })
+    
+    return await new Promise((resolve, reject) => {
+      wx.cloud.callContainer({
+        config: {
+          env: this.baseConfig.env
+        },
+        path: `/favorites/${cleanCode}`,
+        header: {
+          "X-WX-SERVICE": this.baseConfig.service
+        },
+        method: "DELETE",
+        timeout: this.timeout,
+        success: (res) => {
+          console.log('删除自选股响应:', res)
+          if (res.statusCode === 200) {
+            // 清除相关缓存
+            this.cache.delete('/favorites')
+            resolve(res.data)
+          } else {
+            reject(new Error(`删除自选股失败: ${res.statusCode}`))
+          }
+        },
+        fail: (err) => {
+          console.error('删除自选股请求失败:', err)
+          const errorMsg = err.errMsg || 'unknown error'
+          if (errorMsg.includes('timeout') || errorMsg.includes('超时')) {
+            reject(new Error(`请求超时，请检查网络连接`))
+          } else {
+            reject(new Error(`删除自选股失败: ${errorMsg}`))
+          }
+        }
+      })
+    })
+  }
+
+  /**
+   * 格式化自选股数据
+   * @param {Object} rawData - 原始自选股数据
+   * @returns {Object} 格式化后的自选股数据
+   */
+  formatFavoritesData(rawData) {
+    console.log('formatFavoritesData: 原始数据', rawData)
+    
+    if (!rawData || !rawData.favorites) {
+      return { count: 0, favorites: [] }
+    }
+
+    const formattedFavorites = rawData.favorites.map(item => ({
+      symbol: item.code,
+      name: item.name,
+      market: this.determineMarket(item.code),
+      timestamp: new Date(item.created_at).getTime(), // 转换为时间戳便于排序
+      created_at: item.created_at
+    }))
+
+    console.log('formatFavoritesData: 格式化后数据', formattedFavorites)
+
+    return {
+      count: rawData.count || formattedFavorites.length,
+      favorites: formattedFavorites
+    }
+  }
+
+  /**
+   * 同步本地自选股到服务端
+   * @returns {Promise} 同步结果
+   */
+  async syncLocalFavorites() {
+    console.log('开始同步本地自选股到服务端')
+    
+    try {
+      // 1. 获取服务端现有数据
+      let serverFavorites
+      try {
+        serverFavorites = await this.getFavorites()
+      } catch (error) {
+        console.log('获取服务端数据失败，可能是首次使用:', error.message)
+        serverFavorites = { count: 0, favorites: [] }
+      }
+      
+      // 2. 获取本地数据
+      const util = require('./util.js')
+      const localFavorites = util.getStorage('favorite_stocks', [])
+      
+      console.log('本地自选股数量:', localFavorites.length)
+      console.log('服务端自选股数量:', serverFavorites.count)
+      
+      if (localFavorites.length === 0) {
+        console.log('本地无自选股，直接返回服务端数据')
+        return serverFavorites
+      }
+      
+      // 3. 找出需要上传的本地独有股票
+      const serverCodes = new Set(serverFavorites.favorites.map(item => item.symbol))
+      const needUpload = localFavorites.filter(stock => !serverCodes.has(stock.symbol))
+      
+      console.log('需要上传到服务端的股票数量:', needUpload.length)
+      
+      // 4. 控制并发，分批上传
+      let successCount = 0
+      let failCount = 0
+      
+      for (const stock of needUpload) {
+        try {
+          await this.addFavorite(stock.symbol)
+          successCount++
+          console.log(`成功上传: ${stock.name} (${stock.symbol})`)
+          
+          // 防止请求过快
+          if (needUpload.length > 1) {
+            await this.delay(300)
+          }
+        } catch (error) {
+          failCount++
+          console.error(`上传失败: ${stock.name} (${stock.symbol})`, error.message)
+        }
+      }
+      
+      console.log(`数据迁移完成: 成功${successCount}个, 失败${failCount}个`)
+      
+      // 5. 清除缓存并重新获取完整的服务端数据
+      this.cache.delete('/favorites')
+      const finalData = await this.getFavorites()
+      
+      return {
+        ...finalData,
+        syncResult: {
+          uploaded: successCount,
+          failed: failCount,
+          total: needUpload.length
+        }
+      }
+      
+    } catch (error) {
+      console.error('数据同步失败，使用本地数据:', error)
+      
+      // 转换本地数据格式以保持兼容性
+      const util = require('./util.js')
+      const localFavorites = util.getStorage('favorite_stocks', [])
+      
+      return {
+        count: localFavorites.length,
+        favorites: localFavorites.map(stock => ({
+          symbol: stock.symbol,
+          name: stock.name,
+          market: stock.market || this.determineMarket(stock.symbol),
+          timestamp: stock.timestamp || Date.now(),
+          created_at: new Date(stock.timestamp || Date.now()).toISOString()
+        })),
+        syncResult: {
+          error: error.message,
+          fallbackToLocal: true
+        }
+      }
+    }
+  }
 }
 
 // 导出单例

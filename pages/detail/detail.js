@@ -509,41 +509,79 @@ Page({
   },
 
   // 收藏/取消收藏
-  onToggleFavorite() {
+  async onToggleFavorite() {
     const app = getApp()
     let favoriteStocks = app.globalData.favoriteStocks || []
     const { stock } = this.data
     
     const index = favoriteStocks.findIndex(item => item.symbol === stock.symbol)
+    const isRemoving = index > -1
     
-    if (index > -1) {
-      // 取消自选
+    // 先更新本地状态（乐观更新）
+    if (isRemoving) {
       favoriteStocks.splice(index, 1)
-      
-      // 埋点：取消自选
-      track.favoriteRemove(stock.symbol, stock.name, 'detail')
-      
-      util.showToast('已取消自选', 'success')
     } else {
-      // 添加自选
       favoriteStocks.push({
         symbol: stock.symbol,
         name: stock.name,
         market: stock.market,
         timestamp: Date.now()
       })
-      
-      // 埋点：添加自选
-      track.favoriteAdd(stock.symbol, stock.name, 'detail')
-      
-      util.showToast('已加入自选', 'success')
     }
     
+    // 立即更新UI状态
     app.globalData.favoriteStocks = favoriteStocks
     util.setStorage('favorite_stocks', favoriteStocks)
-    
-    // 更新页面收藏状态
     this.updateFavoriteState()
+    
+    // 调用服务端API
+    try {
+      if (isRemoving) {
+        await stockAPI.removeFavorite(stock.symbol)
+        
+        // 埋点：取消自选
+        track.favoriteRemove(stock.symbol, stock.name, 'detail')
+        util.showToast('已取消自选', 'success')
+      } else {
+        await stockAPI.addFavorite(stock.symbol)
+        
+        // 埋点：添加自选
+        track.favoriteAdd(stock.symbol, stock.name, 'detail')
+        util.showToast('已加入自选', 'success')
+      }
+      
+      console.log(`自选股${isRemoving ? '删除' : '添加'}成功:`, stock.name)
+      
+      // 通知首页刷新自选列表
+      this.notifyIndexPageRefresh()
+      
+    } catch (error) {
+      console.error(`自选股${isRemoving ? '删除' : '添加'}失败:`, error.message)
+      
+      // 服务端操作失败，回滚本地状态
+      if (isRemoving) {
+        // 重新添加到本地
+        favoriteStocks.push({
+          symbol: stock.symbol,
+          name: stock.name,
+          market: stock.market,
+          timestamp: Date.now()
+        })
+        util.showToast('取消自选失败，请重试', 'error')
+      } else {
+        // 从本地移除
+        const rollbackIndex = favoriteStocks.findIndex(item => item.symbol === stock.symbol)
+        if (rollbackIndex > -1) {
+          favoriteStocks.splice(rollbackIndex, 1)
+        }
+        util.showToast('添加自选失败，请重试', 'error')
+      }
+      
+      // 更新回滚后的状态
+      app.globalData.favoriteStocks = favoriteStocks
+      util.setStorage('favorite_stocks', favoriteStocks)
+      this.updateFavoriteState()
+    }
   },
 
   // 更新收藏状态
@@ -555,6 +593,22 @@ Page({
     this.setData({
       isFavorited: isFavorited
     })
+  },
+
+  // 通知首页刷新自选列表
+  notifyIndexPageRefresh() {
+    const pages = getCurrentPages()
+    
+    // 查找首页实例
+    const indexPage = pages.find(page => page.route === 'pages/index/index')
+    
+    if (indexPage && indexPage.loadFavorites) {
+      console.log('通知首页刷新自选列表')
+      // 异步调用，不阻塞当前操作
+      setTimeout(() => {
+        indexPage.loadFavorites()
+      }, 100)
+    }
   },
 
   // 检查是否已收藏（保留兼容性）

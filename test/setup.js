@@ -32,6 +32,12 @@ global.wx = {
   // 数据分析
   reportEvent: jest.fn(),
   
+  // 云开发
+  cloud: {
+    init: jest.fn(),
+    callContainer: jest.fn()
+  },
+  
   // 下拉刷新
   stopPullDownRefresh: jest.fn(),
   

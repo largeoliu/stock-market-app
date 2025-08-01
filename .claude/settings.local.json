@@ -12,7 +12,8 @@
       "WebFetch(domain:developers.weixin.qq.com)",
       "Bash(npm install)",
       "Bash(npm test)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(npm test:*)"
     ],
     "deny": []
   }
