@@ -93,11 +93,12 @@ Page({
     this.setData({ recentSearches: recentSearches.slice(0, 20) })
   },
 
-  // 加载热门搜索股票
+  // 加载热门搜索股票 - 简化版本，主要用于重试和其他场景
   async loadHotStocks() {
     try {
       this.setData({ hotStocksLoading: true })
       
+      console.log('[Index] 发起热门股票请求')
       const response = await stockAPI.getHotSearchStocks()
       console.log('热门搜索数据:', response)
       
@@ -345,7 +346,7 @@ Page({
     })
   },
 
-  // 并行加载所有数据 - 性能优化版
+  // 并行加载所有数据 - 简化版本
   async loadDataInParallel() {
     console.log('[Index] 开始并行加载数据')
     

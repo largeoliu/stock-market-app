@@ -38,7 +38,7 @@ const appInstance = {
   /**
    * 初始化关键数据 - 必须同步完成的操作
    */
-  initCriticalData() {
+  async initCriticalData() {
     try {
       // 加载本地收藏股票数据
       const favoriteStocks = wx.getStorageSync('favorite_stocks') || []
@@ -50,6 +50,7 @@ const appInstance = {
       wx.setStorageSync('logs', logs)
       
       console.log('[App] 关键数据初始化完成')
+      
     } catch (error) {
       console.error('[App] 关键数据初始化失败:', error)
       performanceMonitor.reportPerformance('app_error', {
@@ -128,27 +129,8 @@ const appInstance = {
     // 异步执行数据迁移
     this.syncFavoritesData()
     
-    // 预加载热门股票数据
-    this.preloadHotStocks()
-    
     // 内存使用检测
     performanceMonitor.checkMemoryUsage('app_launch')
-  },
-
-  /**
-   * 预加载热门股票数据
-   */
-  async preloadHotStocks() {
-    try {
-      console.log('[App] 开始预加载热门股票数据')
-      const stockAPI = require('./utils/api.js')
-      
-      // 预加载热门股票，失败不影响启动
-      const hotStocks = await stockAPI.getHotSearchStocks()
-      console.log('[App] 热门股票数据预加载完成:', hotStocks.results?.length || 0, '条')
-    } catch (error) {
-      console.log('[App] 热门股票数据预加载失败，将在页面中重新加载:', error.message)
-    }
   },
 
   /**

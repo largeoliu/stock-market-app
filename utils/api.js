@@ -457,8 +457,24 @@ class StockAPI {
    * @returns {Promise} 热门搜索数据
    */
   async getHotSearchStocks() {
+    // 生成缓存键
+    const cacheKey = this.generateCacheKey('/stock_hot_search', {})
+    
+    // 尝试从缓存获取数据
+    const cachedData = this.getFromCache(cacheKey)
+    if (cachedData) {
+      return cachedData
+    }
+    
+    console.log('热门搜索股票请求')
+    
     const data = await this.request('/stock_hot_search')
-    return this.formatHotSearchData(data)
+    const formattedData = this.formatHotSearchData(data)
+    
+    // 将结果存入缓存
+    this.setToCache(cacheKey, formattedData)
+    
+    return formattedData
   }
 
   /**
