@@ -9,14 +9,90 @@ class StockAPI {
   constructor() {
     this.timeout = 3000 // 设置为2秒超时
     this.maxRetries = 2
+    
+    // 根据环境自动切换service配置
+    const isDevelopment = this.isDevelopmentEnvironment()
+    
     this.baseConfig = {
       env: "prod-1gs83ryma8b2a51f",
-      service: "bull"
+      service: isDevelopment ? "test" : "bull"
     }
+    
+    console.log(`API环境: ${isDevelopment ? '开发环境(test)' : '生产环境(bull)'}`)
+    
+    // 初始化缓存
+    this.initCache()
+  }
+
+  /**
+   * 判断是否为开发环境
+   * @returns {boolean} 是否为开发环境
+   */
+  isDevelopmentEnvironment() {
+    // 方法1: 检查是否在微信开发者工具中
+    try {
+      if (typeof wx !== 'undefined' && wx.getSystemInfoSync) {
+        const systemInfo = wx.getSystemInfoSync()
+        // 开发者工具的platform通常为'devtools'
+        if (systemInfo.platform === 'devtools') {
+          return true
+        }
+      }
+    } catch (error) {
+      console.log('无法获取系统信息，使用默认环境判断')
+    }
+
+    // 方法2: 检查是否有开发环境标识
+    try {
+      const devFlag = wx.getStorageSync('__dev_mode__')
+      if (devFlag) {
+        return true
+      }
+    } catch (error) {
+      // 忽略存储读取错误
+    }
+
+    // 方法3: 检查调试模式
+    try {
+      if (typeof __wxConfig !== 'undefined' && __wxConfig.debug) {
+        return true
+      }
+    } catch (error) {
+      // 忽略全局配置检查错误
+    }
+
+    // 默认为生产环境
+    return false
+  }
+
+  /**
+   * 初始化缓存配置
+   */
+  initCache() {
     // 添加缓存
     this.cache = new Map()
     this.cacheExpiry = 5 * 60 * 1000 // 缓存5分钟
     this.shareholdersCacheExpiry = 7 * 24 * 60 * 60 * 1000 // 股东数据缓存7天
+  }
+
+  /**
+   * 手动设置开发模式（用于调试）
+   * @param {boolean} isDev - 是否为开发模式
+   */
+  setDevelopmentMode(isDev) {
+    try {
+      if (isDev) {
+        wx.setStorageSync('__dev_mode__', true)
+      } else {
+        wx.removeStorageSync('__dev_mode__')
+      }
+      
+      // 更新配置
+      this.baseConfig.service = isDev ? "test" : "bull"
+      console.log(`手动切换API环境: ${isDev ? '开发环境(test)' : '生产环境(bull)'}`)
+    } catch (error) {
+      console.error('设置开发模式失败:', error)
+    }
   }
 
   /**

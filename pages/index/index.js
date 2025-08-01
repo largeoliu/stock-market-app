@@ -407,26 +407,52 @@ Page({
     })
   },
 
-  // 删除自选项
-  removeFavoriteItem(index) {
-    // 从存储中获取原始数据
+  // 删除自选项  
+  async removeFavoriteItem(index) {
+    const stock = this.data.favoriteStocks[index]
+    
+    // 先乐观更新本地UI
     const storedFavorites = util.getStorage('favorite_stocks', [])
     const sortedStored = storedFavorites.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
     
     // 删除指定项
     sortedStored.splice(index, 1)
     
-    // 更新存储
+    // 立即更新本地存储和UI
     util.setStorage('favorite_stocks', sortedStored)
-    
-    // 更新全局数据
     const app = getApp()
     app.globalData.favoriteStocks = sortedStored
     
-    // 重新加载自选列表
-    this.loadFavorites()
+    // 立即刷新UI
+    this.setData({
+      favoriteStocks: sortedStored
+    })
     
-    util.showToast('已取消自选', 'success')
+    // 调用服务端API删除
+    try {
+      await stockAPI.removeFavorite(stock.symbol)
+      console.log(`服务端删除自选股成功: ${stock.name}`)
+      
+      // 埋点：删除自选
+      track.favoriteRemove(stock.symbol, stock.name, 'index')
+      
+      util.showToast('已取消自选', 'success')
+      
+    } catch (error) {
+      console.error(`服务端删除自选股失败: ${error.message}`)
+      
+      // 服务端删除失败，回滚本地状态
+      const originalFavorites = util.getStorage('favorite_stocks', [])
+      originalFavorites.splice(index, 0, stock) // 重新插入被删除的股票
+      
+      util.setStorage('favorite_stocks', originalFavorites)
+      app.globalData.favoriteStocks = originalFavorites
+      
+      // 重新刷新UI显示回滚后的数据
+      await this.loadFavorites()
+      
+      util.showToast('取消自选失败，请重试', 'error')
+    }
   },
 
   // 清空所有自选
@@ -488,27 +514,5 @@ Page({
         }
       }
     })
-  },
-
-  // 删除自选项
-  removeFavoriteItem(index) {
-    // 从存储中获取原始数据
-    const storedFavorites = util.getStorage('favorite_stocks', [])
-    const sortedStored = storedFavorites.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
-    
-    // 删除指定项
-    sortedStored.splice(index, 1)
-    
-    // 更新存储
-    util.setStorage('favorite_stocks', sortedStored)
-    
-    // 更新全局数据
-    const app = getApp()
-    app.globalData.favoriteStocks = sortedStored
-    
-    // 重新加载自选列表
-    this.loadFavorites()
-    
-    util.showToast('已取消自选', 'success')
   }
 })

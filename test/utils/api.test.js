@@ -21,6 +21,10 @@ describe('自选股API接口测试', () => {
     
     // 清除API缓存
     stockAPI.cache.clear()
+    
+    // 确保测试环境使用test service
+    wx.getStorageSync.mockReturnValue(true) // 模拟开发环境标识
+    stockAPI.baseConfig.service = 'test'
   })
 
   describe('添加自选股', () => {
@@ -41,7 +45,7 @@ describe('自选股API接口测试', () => {
         config: { env: 'prod-1gs83ryma8b2a51f' },
         path: '/favorites',
         header: {
-          'X-WX-SERVICE': 'bull',
+          'X-WX-SERVICE': 'test',
           'Content-Type': 'application/json'
         },
         method: 'POST',
@@ -116,7 +120,7 @@ describe('自选股API接口测试', () => {
       expect(wx.cloud.callContainer).toHaveBeenCalledWith({
         config: { env: 'prod-1gs83ryma8b2a51f' },
         path: '/favorites',
-        header: { 'X-WX-SERVICE': 'bull' },
+        header: { 'X-WX-SERVICE': 'test' },
         method: 'GET',
         timeout: 3000,
         success: expect.any(Function),
@@ -176,7 +180,7 @@ describe('自选股API接口测试', () => {
       expect(wx.cloud.callContainer).toHaveBeenCalledWith({
         config: { env: 'prod-1gs83ryma8b2a51f' },
         path: '/favorites/000001',
-        header: { 'X-WX-SERVICE': 'bull' },
+        header: { 'X-WX-SERVICE': 'test' },
         method: 'DELETE',
         timeout: 3000,
         success: expect.any(Function),
