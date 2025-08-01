@@ -2,6 +2,7 @@
 const stockAPI = require('../../utils/api.js')
 const util = require('../../utils/util.js')
 const track = require('../../utils/track.js')
+const performanceMonitor = require('../../utils/performance.js')
 
 Page({
   data: {
@@ -22,21 +23,40 @@ Page({
   },
 
   async onLoad() {
+    // 开始监控页面加载性能
+    performanceMonitor.startTimer('page_load_index')
+    console.log('[Index] 首页开始加载')
+    
     // 获取系统信息，设置安全区域
     const systemInfo = wx.getSystemInfoSync()
     this.setData({
       safeAreaTop: systemInfo.safeArea?.top || systemInfo.statusBarHeight || 0
     })
     
-    this.loadRecentSearches()
-    this.loadHotStocks()
-    await this.loadFavorites()
+    performanceMonitor.markPhase('page_load_index', 'system_info_ready')
     
-    // 检查自选股，如果有自选股则默认显示自选tab
+    // 并行加载所有数据，提升加载性能
+    await this.loadDataInParallel()
+    
+    performanceMonitor.markPhase('page_load_index', 'data_loaded')
+    
+    // 设置默认tab
     this.setDefaultTab()
     
     // 创建防抖搜索函数
     this.debouncedSearch = util.debounce(this.performSearch.bind(this), 500)
+    
+    // 完成页面加载监控
+    performanceMonitor.endTimer('page_load_index', {
+      pageName: 'index',
+      favoriteCount: this.data.favoriteStocks.length,
+      hotStockCount: this.data.hotStocks.length
+    })
+    
+    console.log('[Index] 首页加载完成')
+    
+    // 检查内存使用
+    performanceMonitor.checkMemoryUsage('index_load')
   },
 
   async onShow() {
@@ -323,6 +343,118 @@ Page({
       searchResults: [],
       showResults: false
     })
+  },
+
+  // 并行加载所有数据 - 性能优化版
+  async loadDataInParallel() {
+    console.log('[Index] 开始并行加载数据')
+    
+    try {
+      // 立即加载本地数据（非异步操作）
+      this.loadRecentSearches()
+      performanceMonitor.markPhase('page_load_index', 'recent_searches_loaded')
+      
+      // 并行执行所有异步数据加载任务
+      const loadTasks = [
+        this.loadFavoritesWithMonitoring(),
+        this.loadHotStocksWithMonitoring()
+      ]
+      
+      // 使用Promise.allSettled确保部分失败不影响其他数据加载
+      const results = await Promise.allSettled(loadTasks)
+      
+      // 处理加载结果
+      this.handleLoadResults(results)
+      
+      console.log('[Index] 并行数据加载完成')
+      
+    } catch (error) {
+      console.error('[Index] 并行数据加载失败:', error)
+      performanceMonitor.reportPerformance('page_load_error', {
+        pageName: 'index',
+        error: error.message
+      })
+    }
+  },
+
+  /**
+   * 处理数据加载结果
+   * @param {Array} results Promise.allSettled的结果
+   */
+  handleLoadResults(results) {
+    const [favoritesResult, hotStocksResult] = results
+    
+    if (favoritesResult.status === 'rejected') {
+      console.error('[Index] 自选股加载失败:', favoritesResult.reason)
+    }
+    
+    if (hotStocksResult.status === 'rejected') {
+      console.error('[Index] 热门股票加载失败:', hotStocksResult.reason)
+      // 热门股票加载失败时显示重试按钮
+      this.setData({ hotStocksLoadFailed: true })
+    }
+  },
+
+  /**
+   * 带性能监控的自选股加载
+   */
+  async loadFavoritesWithMonitoring() {
+    const startTime = Date.now()
+    
+    try {
+      await this.loadFavorites()
+      const loadTime = Date.now() - startTime
+      console.log('[Index] 自选股加载完成，耗时:', loadTime, 'ms')
+      
+      performanceMonitor.reportPerformance('data_load_favorites', {
+        loadTime,
+        count: this.data.favoriteStocks.length,
+        success: true
+      })
+      
+    } catch (error) {
+      const loadTime = Date.now() - startTime
+      console.error('[Index] 自选股加载失败:', error)
+      
+      performanceMonitor.reportPerformance('data_load_favorites', {
+        loadTime,
+        success: false,
+        error: error.message
+      })
+      
+      throw error
+    }
+  },
+
+  /**
+   * 带性能监控的热门股票加载
+   */
+  async loadHotStocksWithMonitoring() {
+    const startTime = Date.now()
+    
+    try {
+      await this.loadHotStocks()
+      const loadTime = Date.now() - startTime
+      console.log('[Index] 热门股票加载完成，耗时:', loadTime, 'ms')
+      
+      performanceMonitor.reportPerformance('data_load_hot_stocks', {
+        loadTime,
+        count: this.data.hotStocks.length,
+        success: true
+      })
+      
+    } catch (error) {
+      const loadTime = Date.now() - startTime
+      console.error('[Index] 热门股票加载失败:', error)
+      
+      performanceMonitor.reportPerformance('data_load_hot_stocks', {
+        loadTime,
+        success: false,
+        error: error.message
+      })
+      
+      throw error
+    }
   },
 
   // 从本地缓存更新自选股列表（不发起网络请求）

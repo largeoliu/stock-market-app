@@ -1,70 +1,219 @@
+const performanceMonitor = require('./utils/performance.js')
+
 const appInstance = {
   async onLaunch() {
-    wx.cloud.init()
+    // 开始监控应用启动性能
+    performanceMonitor.startTimer('app_launch')
     
-    // 先加载本地收藏的股票数据
-    const favoriteStocks = wx.getStorageSync('favorite_stocks') || []
-    this.globalData.favoriteStocks = favoriteStocks
+    console.log('[App] 小程序启动开始')
     
-    // 异步执行数据迁移，不阻塞小程序启动
-    this.syncFavoritesData()
+    // 立即执行关键初始化操作
+    await this.initCriticalData()
+    performanceMonitor.markPhase('app_launch', 'critical_data_ready')
     
-    // 检查小程序更新
-    this.checkForUpdate()
+    // 并行执行非阻塞操作
+    const parallelTasks = [
+      this.initCloud(),
+      this.initUserAuth(),
+      this.checkForUpdate()
+    ]
     
-    // 展示本地存储能力
-    const logs = wx.getStorageSync('logs') || []
-    logs.unshift(Date.now())
-    wx.setStorageSync('logs', logs)
-
-    // 登录
-    wx.login({
-      success: res => {
-        console.log('登录成功', res.code)
-      }
+    await Promise.allSettled(parallelTasks)
+    performanceMonitor.markPhase('app_launch', 'parallel_tasks_done')
+    
+    // 延迟执行非关键操作
+    setTimeout(() => {
+      this.initBackgroundTasks()
+    }, 100)
+    
+    // 完成启动监控
+    const appLaunchResult = performanceMonitor.endTimer('app_launch', {
+      launchType: this.getLaunchType(),
+      pageName: 'app'
     })
-
-    // 获取用户信息
-    wx.getSetting({
-      success: res => {
-        if (res.authSetting['scope.userInfo']) {
-          wx.getUserInfo({
-            success: res => {
-              this.globalData.userInfo = res.userInfo
-              if (this.userInfoReadyCallback) {
-                this.userInfoReadyCallback(res)
-              }
-            }
-          })
-        }
-      }
-    })
+    
+    console.log('[App] 小程序启动完成，耗时:', appLaunchResult.totalTime, 'ms')
   },
 
-  // 同步自选股数据到服务端
-  async syncFavoritesData() {
+  /**
+   * 初始化关键数据 - 必须同步完成的操作
+   */
+  initCriticalData() {
     try {
-      console.log('开始执行自选股数据迁移')
+      // 加载本地收藏股票数据
+      const favoriteStocks = wx.getStorageSync('favorite_stocks') || []
+      this.globalData.favoriteStocks = favoriteStocks
+      
+      // 记录访问日志
+      const logs = wx.getStorageSync('logs') || []
+      logs.unshift(Date.now())
+      wx.setStorageSync('logs', logs)
+      
+      console.log('[App] 关键数据初始化完成')
+    } catch (error) {
+      console.error('[App] 关键数据初始化失败:', error)
+      performanceMonitor.reportPerformance('app_error', {
+        errorType: 'critical_data_init_failed',
+        error: error.message
+      })
+    }
+  },
+
+  /**
+   * 初始化云开发
+   */
+  async initCloud() {
+    try {
+      performanceMonitor.startTimer('cloud_init')
+      wx.cloud.init()
+      performanceMonitor.endTimer('cloud_init')
+      console.log('[App] 云开发初始化完成')
+    } catch (error) {
+      console.error('[App] 云开发初始化失败:', error)
+    }
+  },
+
+  /**
+   * 初始化用户认证
+   */
+  async initUserAuth() {
+    try {
+      performanceMonitor.startTimer('user_auth')
+      
+      // 登录
+      const loginResult = await new Promise((resolve) => {
+        wx.login({
+          success: res => {
+            console.log('[App] 登录成功', res.code)
+            resolve(res)
+          },
+          fail: err => {
+            console.error('[App] 登录失败:', err)
+            resolve(null)
+          }
+        })
+      })
+
+      // 获取用户信息
+      if (loginResult) {
+        wx.getSetting({
+          success: res => {
+            if (res.authSetting['scope.userInfo']) {
+              wx.getUserInfo({
+                success: res => {
+                  this.globalData.userInfo = res.userInfo
+                  if (this.userInfoReadyCallback) {
+                    this.userInfoReadyCallback(res)
+                  }
+                }
+              })
+            }
+          }
+        })
+      }
+      
+      performanceMonitor.endTimer('user_auth')
+      console.log('[App] 用户认证完成')
+    } catch (error) {
+      console.error('[App] 用户认证失败:', error)
+    }
+  },
+
+  /**
+   * 初始化后台任务
+   */
+  initBackgroundTasks() {
+    console.log('[App] 开始执行后台任务')
+    
+    // 异步执行数据迁移
+    this.syncFavoritesData()
+    
+    // 预加载热门股票数据
+    this.preloadHotStocks()
+    
+    // 内存使用检测
+    performanceMonitor.checkMemoryUsage('app_launch')
+  },
+
+  /**
+   * 预加载热门股票数据
+   */
+  async preloadHotStocks() {
+    try {
+      console.log('[App] 开始预加载热门股票数据')
+      const stockAPI = require('./utils/api.js')
+      
+      // 预加载热门股票，失败不影响启动
+      const hotStocks = await stockAPI.getHotSearchStocks()
+      console.log('[App] 热门股票数据预加载完成:', hotStocks.results?.length || 0, '条')
+    } catch (error) {
+      console.log('[App] 热门股票数据预加载失败，将在页面中重新加载:', error.message)
+    }
+  },
+
+  /**
+   * 获取启动类型
+   */
+  getLaunchType() {
+    // 检查是否为冷启动
+    const lastExitTime = wx.getStorageSync('last_exit_time')
+    const now = Date.now()
+    
+    if (!lastExitTime || (now - lastExitTime) > 5 * 60 * 1000) { // 5分钟后认为是冷启动
+      return 'cold'
+    }
+    return 'hot'
+  },
+
+  /**
+   * 应用显示时
+   */
+  onShow() {
+    console.log('[App] 小程序显示')
+    performanceMonitor.checkMemoryUsage('app_show')
+  },
+
+  /**
+   * 应用隐藏时
+   */
+  onHide() {
+    console.log('[App] 小程序隐藏')
+    // 记录退出时间，用于判断下次启动类型
+    wx.setStorageSync('last_exit_time', Date.now())
+  },
+
+  // 同步自选股数据到服务端 - 优化版
+  async syncFavoritesData() {
+    performanceMonitor.startTimer('data_migration')
+    
+    try {
+      console.log('[App] 开始执行自选股数据迁移')
       
       // 检查是否已经执行过迁移
       const migrationKey = 'favorites_migration_completed'
       const migrationCompleted = wx.getStorageSync(migrationKey)
       
       if (migrationCompleted) {
-        console.log('数据迁移已完成，跳过')
+        console.log('[App] 数据迁移已完成，跳过')
+        performanceMonitor.endTimer('data_migration', { skipped: true })
         return
       }
       
       const stockAPI = require('./utils/api.js')
-      const syncResult = await stockAPI.syncLocalFavorites()
+      
+      // 使用性能监控包装API调用
+      const syncResult = await performanceMonitor.monitorApiCall(
+        '/sync_favorites',
+        () => stockAPI.syncLocalFavorites()
+      )
       
       if (syncResult.syncResult) {
         const { uploaded, failed, total, error, fallbackToLocal } = syncResult.syncResult
         
         if (error && fallbackToLocal) {
-          console.log('数据迁移失败，继续使用本地数据:', error)
+          console.log('[App] 数据迁移失败，继续使用本地数据:', error)
         } else if (total > 0) {
-          console.log(`数据迁移完成: 成功上传${uploaded}个，失败${failed}个，共${total}个`)
+          console.log(`[App] 数据迁移完成: 成功上传${uploaded}个，失败${failed}个，共${total}个`)
           
           // 更新全局数据和本地存储
           this.globalData.favoriteStocks = syncResult.favorites || []
@@ -78,10 +227,10 @@ const appInstance = {
                 icon: 'success',
                 duration: 2000
               })
-            }, 1000) // 延迟1秒显示，避免与页面加载冲突
+            }, 1500) // 延迟显示，避免与启动流程冲突
           }
         } else {
-          console.log('无需迁移数据，使用服务端现有数据')
+          console.log('[App] 无需迁移数据，使用服务端现有数据')
           // 更新本地全局数据和存储
           this.globalData.favoriteStocks = syncResult.favorites || []
           wx.setStorageSync('favorite_stocks', syncResult.favorites || [])
@@ -95,8 +244,19 @@ const appInstance = {
         this.globalData.favoritesReady = true
       }
       
+      performanceMonitor.endTimer('data_migration', {
+        success: true,
+        uploaded: syncResult.syncResult?.uploaded || 0
+      })
+      
     } catch (error) {
-      console.error('自选股数据迁移失败:', error)
+      console.error('[App] 自选股数据迁移失败:', error)
+      
+      performanceMonitor.endTimer('data_migration', {
+        success: false,
+        error: error.message
+      })
+      
       // 迁移失败不影响小程序正常使用，继续使用本地数据
       this.globalData.favoritesReady = true
     }

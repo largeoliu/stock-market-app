@@ -1,0 +1,75 @@
+<!-- 骨架屏组件 - 提升加载体验 -->
+<view class="skeleton-container {{rootClass}}" wx:if="{{show}}">
+  <!-- 股票列表骨架屏 -->
+  <view class="skeleton-stock-list" wx:if="{{type === 'stock-list'}}">
+    <view class="skeleton-item" wx:for="{{rows || 3}}" wx:key="index">
+      <view class="skeleton-avatar"></view>
+      <view class="skeleton-content">
+        <view class="skeleton-title"></view>
+        <view class="skeleton-subtitle"></view>
+      </view>
+      <view class="skeleton-number"></view>
+    </view>
+  </view>
+
+  <!-- 图表骨架屏 -->
+  <view class="skeleton-chart" wx:if="{{type === 'chart'}}">
+    <view class="skeleton-chart-title"></view>
+    <view class="skeleton-chart-body">
+      <view class="skeleton-chart-line" wx:for="{{5}}" wx:key="index" 
+            style="height: {{(index + 1) * 20}}rpx; animation-delay: {{index * 0.1}}s"></view>
+    </view>
+    <view class="skeleton-chart-legend">
+      <view class="skeleton-legend-item" wx:for="{{3}}" wx:key="index"></view>
+    </view>
+  </view>
+
+  <!-- 搜索结果骨架屏 -->
+  <view class="skeleton-search" wx:if="{{type === 'search'}}">
+    <view class="skeleton-search-item" wx:for="{{rows || 5}}" wx:key="index">
+      <view class="skeleton-search-content">
+        <view class="skeleton-search-title"></view>
+        <view class="skeleton-search-code"></view>
+      </view>
+      <view class="skeleton-search-price">
+        <view class="skeleton-price-main"></view>
+        <view class="skeleton-price-change"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 详情页骨架屏 -->
+  <view class="skeleton-detail" wx:if="{{type === 'detail'}}">
+    <!-- 股票基本信息 -->
+    <view class="skeleton-detail-header">
+      <view class="skeleton-stock-name"></view>
+      <view class="skeleton-stock-code"></view>
+    </view>
+    
+    <!-- 数据类型切换 -->
+    <view class="skeleton-tabs">
+      <view class="skeleton-tab" wx:for="{{2}}" wx:key="index"></view>
+    </view>
+    
+    <!-- 图表区域 -->
+    <view class="skeleton-detail-chart">
+      <view class="skeleton-chart-area"></view>
+    </view>
+    
+    <!-- 统计信息 -->
+    <view class="skeleton-stats">
+      <view class="skeleton-stat-item" wx:for="{{4}}" wx:key="index">
+        <view class="skeleton-stat-label"></view>
+        <view class="skeleton-stat-value"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 通用文本骨架屏 -->
+  <view class="skeleton-text" wx:if="{{type === 'text'}}">
+    <view class="skeleton-text-line" 
+          wx:for="{{rows || 3}}" 
+          wx:key="index"
+          style="width: {{index === rows - 1 ? '60%' : '100%'}}"></view>
+  </view>
+</view>

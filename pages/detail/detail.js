@@ -2,6 +2,7 @@
 const stockAPI = require('../../utils/api.js')
 const util = require('../../utils/util.js')
 const track = require('../../utils/track.js')
+const performanceMonitor = require('../../utils/performance.js')
 
 Page({
   data: {
@@ -73,6 +74,10 @@ Page({
   },
 
   onLoad(options) {
+    // 开始监控详情页加载性能
+    performanceMonitor.startTimer('page_load_detail')
+    console.log('[Detail] 详情页开始加载')
+    
     const { symbol, name, market, from } = options
     
     // 获取屏幕宽度
@@ -93,10 +98,13 @@ Page({
     wx.setNavigationBarTitle({
       title: name || symbol || '股票详情'
     })
+    
+    performanceMonitor.markPhase('page_load_detail', 'basic_info_ready')
 
-    this.loadStockData()
-    this.loadStableShareholders()
-    this.updateFavoriteState()
+    // 并行加载数据，提升加载性能
+    this.loadDataInParallel()
+    
+    console.log('[Detail] 详情页基础信息设置完成')
   },
 
   onReady() {
@@ -114,6 +122,106 @@ Page({
     
     // 更新收藏状态，以防从其他页面返回时状态发生变化
     this.updateFavoriteState()
+  },
+
+  // 并行加载所有数据 - 详情页性能优化版
+  async loadDataInParallel() {
+    console.log('[Detail] 开始并行加载数据')
+    
+    try {
+      // 立即更新收藏状态（同步操作）
+      this.updateFavoriteState()
+      performanceMonitor.markPhase('page_load_detail', 'favorite_state_ready')
+      
+      // 并行执行所有数据加载任务
+      const loadTasks = [
+        this.loadStockDataWithMonitoring(),
+        this.loadStableShareholdersWithMonitoring()
+      ]
+      
+      // 使用Promise.allSettled确保部分失败不影响其他数据加载
+      const results = await Promise.allSettled(loadTasks)
+      
+      // 处理加载结果
+      this.handleDetailLoadResults(results)
+      
+      performanceMonitor.markPhase('page_load_detail', 'all_data_loaded')
+      
+      // 完成详情页加载监控
+      performanceMonitor.endTimer('page_load_detail', {
+        pageName: 'detail',
+        stockSymbol: this.data.stock.symbol,
+        stockName: this.data.stock.name,
+        dataType: this.data.currentDataType
+      })
+      
+      console.log('[Detail] 详情页加载完成')
+      
+      // 检查内存使用
+      performanceMonitor.checkMemoryUsage('detail_load')
+      
+    } catch (error) {
+      console.error('[Detail] 并行数据加载失败:', error)
+      performanceMonitor.reportPerformance('page_load_error', {
+        pageName: 'detail',
+        error: error.message,
+        stockSymbol: this.data.stock.symbol
+      })
+    }
+  },
+
+  /**
+   * 处理详情页数据加载结果
+   * @param {Array} results Promise.allSettled的结果
+   */
+  handleDetailLoadResults(results) {
+    const [stockDataResult, shareholdersResult] = results
+    
+    if (stockDataResult.status === 'rejected') {
+      console.error('[Detail] 股票数据加载失败:', stockDataResult.reason)
+      this.setData({ chartError: true })
+    }
+    
+    if (shareholdersResult.status === 'rejected') {
+      console.error('[Detail] 稳定股东数据加载失败:', shareholdersResult.reason)
+      this.setData({ 'stableShareholders.error': true })
+    }
+  },
+
+  /**
+   * 带性能监控的股票数据加载
+   */
+  async loadStockDataWithMonitoring() {
+    const startTime = Date.now()
+    
+    try {
+      await this.loadStockData()
+      const loadTime = Date.now() - startTime
+      console.log('[Detail] 股票数据加载完成，耗时:', loadTime, 'ms')
+      
+    } catch (error) {
+      const loadTime = Date.now() - startTime
+      console.error('[Detail] 股票数据加载失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 带性能监控的稳定股东数据加载
+   */
+  async loadStableShareholdersWithMonitoring() {
+    const startTime = Date.now()
+    
+    try {
+      await this.loadStableShareholders()
+      const loadTime = Date.now() - startTime
+      console.log('[Detail] 稳定股东数据加载完成，耗时:', loadTime, 'ms')
+      
+    } catch (error) {
+      const loadTime = Date.now() - startTime
+      console.error('[Detail] 稳定股东数据加载失败:', error)
+      throw error
+    }
   },
 
   // 加载股票数据

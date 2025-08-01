@@ -193,6 +193,99 @@ class Track {
     });
   }
 
+  // ==================== 性能监控埋点 ====================
+
+  /**
+   * 应用启动性能
+   * @param {number} launchTime 启动耗时(ms)
+   * @param {string} launchType 启动类型 cold/hot
+   * @param {Object} phases 启动各阶段耗时
+   */
+  appLaunchPerformance(launchTime, launchType = 'cold', phases = {}) {
+    this.reportEvent('app_launch_performance', {
+      launch_time: launchTime,
+      launch_type: launchType,
+      cloud_init_time: phases.cloudInit || 0,
+      data_migration_time: phases.dataMigration || 0,
+      first_page_ready_time: phases.firstPageReady || 0
+    });
+  }
+
+  /**
+   * 页面加载性能
+   * @param {string} pageName 页面名称
+   * @param {number} loadTime 加载耗时(ms)
+   * @param {Object} phases 加载各阶段耗时
+   */
+  pageLoadPerformance(pageName, loadTime, phases = {}) {
+    this.reportEvent('page_load_performance', {
+      page_name: pageName,
+      load_time: loadTime,
+      data_load_time: phases.dataLoad || 0,
+      render_time: phases.render || 0,
+      interactive_time: phases.interactive || 0
+    });
+  }
+
+  /**
+   * API接口性能
+   * @param {string} apiPath 接口路径
+   * @param {number} responseTime 响应耗时(ms)
+   * @param {boolean} success 是否成功
+   * @param {string} errorType 错误类型
+   */
+  apiPerformance(apiPath, responseTime, success = true, errorType = '') {
+    this.reportEvent('api_performance', {
+      api_path: apiPath,
+      response_time: responseTime,
+      success: success,
+      error_type: errorType,
+      is_cached: false // 后续会动态设置
+    });
+  }
+
+  /**
+   * 内存使用监控
+   * @param {number} memoryUsage 内存使用量(MB)
+   * @param {string} context 上下文(页面或操作)
+   */
+  memoryUsage(memoryUsage, context = '') {
+    this.reportEvent('memory_usage', {
+      memory_usage: memoryUsage,
+      context: context,
+      timestamp: Date.now()
+    });
+  }
+
+  /**
+   * 错误监控
+   * @param {string} errorType 错误类型
+   * @param {string} errorMessage 错误信息
+   * @param {string} context 发生错误的上下文
+   */
+  errorReport(errorType, errorMessage, context = '') {
+    this.reportEvent('error_report', {
+      error_type: errorType,
+      error_message: errorMessage,
+      context: context,
+      user_agent: wx.getSystemInfoSync().platform || 'unknown'
+    });
+  }
+
+  /**
+   * 缓存命中率统计
+   * @param {string} cacheKey 缓存键
+   * @param {boolean} hit 是否命中
+   * @param {number} cacheAge 缓存年龄(ms)
+   */
+  cacheHitRate(cacheKey, hit = true, cacheAge = 0) {
+    this.reportEvent('cache_hit_rate', {
+      cache_key: cacheKey,
+      hit: hit,
+      cache_age: cacheAge
+    });
+  }
+
   // ==================== 工具方法 ====================
 
   /**

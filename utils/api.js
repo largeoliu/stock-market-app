@@ -1,5 +1,6 @@
 // API工具类 - 重构版本
 const util = require('./util.js')
+const track = require('./track.js')
 
 /**
  * 股票API服务类
@@ -66,13 +67,38 @@ class StockAPI {
   }
 
   /**
-   * 初始化缓存配置
+   * 初始化缓存配置 - 智能缓存策略
    */
   initCache() {
     // 添加缓存
     this.cache = new Map()
-    this.cacheExpiry = 5 * 60 * 1000 // 缓存5分钟
-    this.shareholdersCacheExpiry = 7 * 24 * 60 * 60 * 1000 // 股东数据缓存7天
+    
+    // 智能缓存策略 - 根据数据特性设置不同的缓存时间
+    this.cacheStrategies = {
+      // 自选股相关 - 中等频率更新
+      '/favorites': 5 * 60 * 1000,              // 5分钟
+      
+      // 股票历史数据 - 低频率更新
+      '/stock_data': 30 * 60 * 1000,            // 30分钟
+      '/stock_actual_turnover': 60 * 60 * 1000, // 1小时
+      
+      // 搜索和热门数据 - 中等频率更新
+      '/stock_search': 10 * 60 * 1000,          // 10分钟
+      '/stock_hot_search': 15 * 60 * 1000,      // 15分钟
+      
+      // 股东数据 - 低频率更新
+      '/stock_stable_shareholders': 7 * 24 * 60 * 60 * 1000, // 7天
+      
+      // 默认缓存时间
+      'default': 5 * 60 * 1000                  // 5分钟
+    }
+    
+    // 性能优化：缓存命中率统计
+    this.cacheStats = {
+      hits: 0,
+      misses: 0,
+      totalRequests: 0
+    }
   }
 
   /**
@@ -96,13 +122,17 @@ class StockAPI {
   }
 
   /**
-   * 通用API请求方法
+   * 通用API请求方法 - 性能优化版本
    * @param {string} path - API路径
    * @param {Object} params - 请求参数
    * @param {number} retryCount - 重试次数
    * @returns {Promise} API响应数据
    */
   async request(path, params = {}, retryCount = 0) {
+    const startTime = Date.now()
+    let success = true
+    let errorType = ''
+    
     try {
       // 构建查询字符串
       const queryString = Object.keys(params)
@@ -111,7 +141,7 @@ class StockAPI {
       
       const fullPath = queryString ? `${path}?${queryString}` : path
       
-      console.log(`API请求: ${fullPath}`)
+      console.log(`[API请求] ${fullPath}`)
       
       return await new Promise((resolve, reject) => {
         wx.cloud.callContainer({
@@ -125,22 +155,37 @@ class StockAPI {
           method: "GET",
           timeout: this.timeout, // 应用超时设置
           success: (res) => {
-            console.log(`API响应 [${path}]:`, res)
-            console.log(`响应数据结构:`, JSON.stringify(res.data, null, 2))
+            const responseTime = Date.now() - startTime
+            console.log(`[API响应] ${path} - ${responseTime}ms:`, res.statusCode)
+            
             if (res.statusCode === 200) {
+              // 上报API性能
+              track.apiPerformance(path, responseTime, true, '')
               resolve(res.data)
             } else {
+              success = false
+              errorType = `http_${res.statusCode}`
+              console.error(`[API错误] ${path}: HTTP ${res.statusCode}`)
               reject(new Error(`请求失败: ${res.statusCode}`))
             }
           },
           fail: (err) => {
-            console.error(`API请求失败 [${path}]:`, err)
+            const responseTime = Date.now() - startTime
+            success = false
+            
             const errorMsg = err.errMsg || 'unknown error'
             if (errorMsg.includes('timeout') || errorMsg.includes('超时')) {
+              errorType = 'timeout'
+              console.error(`[API超时] ${path} - ${responseTime}ms`)
               reject(new Error(`请求超时，请检查网络连接`))
             } else {
+              errorType = 'network_error'
+              console.error(`[API网络错误] ${path} - ${responseTime}ms:`, errorMsg)
               reject(new Error(`网络请求失败: ${errorMsg}`))
             }
+            
+            // 上报API错误性能
+            track.apiPerformance(path, responseTime, false, errorType)
           }
         })
       })
@@ -177,25 +222,60 @@ class StockAPI {
   }
 
   /**
-   * 从缓存获取数据
+   * 智能获取缓存过期时间
+   * @param {string} path - API路径
+   * @returns {number} 缓存过期时间（毫秒）
+   */
+  getCacheExpiry(path) {
+    // 根据API路径智能选择缓存时间
+    for (const [pattern, expiry] of Object.entries(this.cacheStrategies)) {
+      if (path.includes(pattern)) {
+        return expiry
+      }
+    }
+    return this.cacheStrategies.default
+  }
+
+  /**
+   * 从缓存获取数据 - 智能缓存版本
    * @param {string} cacheKey - 缓存键
    * @param {number} customExpiry - 自定义过期时间（毫秒）
    * @returns {Object|null} 缓存的数据或null
    */
   getFromCache(cacheKey, customExpiry = null) {
+    this.cacheStats.totalRequests++
+    
     const cached = this.cache.get(cacheKey)
-    if (!cached) return null
-    
-    // 使用自定义过期时间或默认过期时间
-    const expiryTime = customExpiry || this.cacheExpiry
-    
-    // 检查是否过期
-    if (Date.now() - cached.timestamp > expiryTime) {
-      this.cache.delete(cacheKey)
+    if (!cached) {
+      this.cacheStats.misses++
       return null
     }
     
-    console.log(`从缓存获取数据: ${cacheKey}`)
+    // 智能选择过期时间
+    let expiryTime = customExpiry
+    if (!expiryTime) {
+      // 从缓存键中提取API路径
+      const path = cacheKey.split('?')[0]
+      expiryTime = this.getCacheExpiry(path)
+    }
+    
+    // 检查是否过期
+    const age = Date.now() - cached.timestamp
+    if (age > expiryTime) {
+      this.cache.delete(cacheKey)
+      this.cacheStats.misses++
+      
+      // 上报缓存过期
+      track.cacheHitRate(cacheKey, false, age)
+      return null
+    }
+    
+    this.cacheStats.hits++
+    console.log(`[缓存命中] ${cacheKey} (年龄: ${Math.round(age/1000)}s)`)
+    
+    // 上报缓存命中
+    track.cacheHitRate(cacheKey, true, age)
+    
     return cached.data
   }
 
@@ -216,25 +296,49 @@ class StockAPI {
   }
 
   /**
-   * 清理过期缓存
+   * 清理过期缓存 - 智能清理版本
    */
   cleanExpiredCache() {
     const now = Date.now()
+    let cleanedCount = 0
+    
     for (const [key, value] of this.cache.entries()) {
-      let isExpired = false
+      // 智能获取该缓存项的过期时间
+      const path = key.split('?')[0]
+      const expiryTime = this.getCacheExpiry(path)
       
-      // 根据缓存键判断使用哪种过期时间
-      if (key.includes('/stock_stable_shareholders')) {
-        isExpired = now - value.timestamp > this.shareholdersCacheExpiry
-      } else {
-        isExpired = now - value.timestamp > this.cacheExpiry
-      }
-      
-      if (isExpired) {
+      const age = now - value.timestamp
+      if (age > expiryTime) {
         this.cache.delete(key)
-        console.log(`清理过期缓存: ${key}`)
+        cleanedCount++
+        console.log(`[缓存清理] ${key} (年龄: ${Math.round(age/1000)}s)`)
       }
     }
+    
+    if (cleanedCount > 0) {
+      console.log(`[缓存清理] 清理了 ${cleanedCount} 个过期缓存项`)
+    }
+    
+    // 定期上报缓存统计
+    this.reportCacheStats()
+  }
+
+  /**
+   * 上报缓存统计信息
+   */
+  reportCacheStats() {
+    const hitRate = this.cacheStats.totalRequests > 0 
+      ? (this.cacheStats.hits / this.cacheStats.totalRequests * 100).toFixed(2)
+      : 0
+    
+    console.log(`[缓存统计] 命中率: ${hitRate}%, 命中: ${this.cacheStats.hits}, 未命中: ${this.cacheStats.misses}`)
+    
+    // 上报性能数据
+    track.reportEvent('cache_performance', {
+      hit_rate: parseFloat(hitRate),
+      total_requests: this.cacheStats.totalRequests,
+      cache_size: this.cache.size
+    })
   }
 
   /**
