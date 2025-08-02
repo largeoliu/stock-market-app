@@ -351,8 +351,20 @@ Component({
       const chartWidth = width - leftPadding - rightPadding
       const relativeX = x - leftPadding
       
-      if (relativeX >= 0 && relativeX <= chartWidth) {
-        const index = Math.round((relativeX / chartWidth) * (data.length - 1))
+      // 扩大触摸区域，允许在左右留白处也能选中边缘数据点
+      // 只要在合理的x范围内就响应
+      if (x >= 0 && x <= width) {
+        let index
+        if (relativeX < 0) {
+          // 在左侧留白区域，选中第一个数据点
+          index = 0
+        } else if (relativeX > chartWidth) {
+          // 在右侧留白区域，选中最后一个数据点
+          index = data.length - 1
+        } else {
+          // 在图表区域内，正常计算
+          index = Math.round((relativeX / chartWidth) * (data.length - 1))
+        }
         const clampedIndex = Math.max(0, Math.min(index, data.length - 1))
         
         // 更新悬停索引
