@@ -1,6 +1,23 @@
 {
   "version": "2.0.0",
   "tasks": [
+     {
+            "label": "merge-dev-to-main-and-push",
+            "type": "shell",
+            "command": "/bin/bash",
+            "args": [
+                "-c",
+                "set -e && echo '切换到main分支' && git checkout main && echo '合并dev分支到main分支' && git merge dev && echo '推送到远程main分支' && git push origin main && echo '切换回dev分支' && git checkout dev && echo '已完成：合并dev到main并推送'"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
     {
       "label": "微信小程序：上传",
       "type": "shell",
