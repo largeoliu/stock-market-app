@@ -26,7 +26,10 @@ Component({
   data: {
     canvasId: 'simple-chart',
     hoveredIndex: -1, // 当前悬停的数据点索引
-    showTooltip: false // 是否显示提示信息
+    showTooltip: false, // 是否显示提示信息
+    isThrottling: false, // 节流标志
+    lastTouchTime: 0, // 上次触摸时间
+    pendingTouch: null // 待处理的触摸事件
   },
 
   ready() {
@@ -170,7 +173,7 @@ Component({
       
       // 主线条 - Longbridge风格
       ctx.setStrokeStyle('#00C2FF')
-      ctx.setLineWidth(2)
+      ctx.setLineWidth(1)
       ctx.setLineCap('round')
       ctx.setLineJoin('round')
       ctx.beginPath()
@@ -352,12 +355,37 @@ Component({
         const index = Math.round((relativeX / chartWidth) * (data.length - 1))
         const clampedIndex = Math.max(0, Math.min(index, data.length - 1))
         
+        // 更新悬停索引
         this.setData({
           hoveredIndex: clampedIndex,
-          showTooltip: true
+          showTooltip: true,
+          pendingTouch: { index: clampedIndex } // 保存待处理的触摸
         })
         
-        this.drawChart()
+        // 节流处理：限制重绘频率
+        const now = Date.now()
+        const timeSinceLastDraw = now - this.data.lastTouchTime
+        
+        if (!this.data.isThrottling) {
+          // 如果没有在节流中，立即重绘
+          this.setData({
+            isThrottling: true,
+            lastTouchTime: now
+          })
+          
+          this.drawChart()
+          
+          // 16ms后解除节流（约60fps）
+          setTimeout(() => {
+            this.setData({ isThrottling: false })
+            
+            // 如果有待处理的触摸，执行最后一次重绘
+            if (this.data.pendingTouch) {
+              this.setData({ pendingTouch: null })
+              this.drawChart()
+            }
+          }, 16)
+        }
       }
     },
 
