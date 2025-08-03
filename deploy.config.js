@@ -1,6 +1,6 @@
 module.exports = {
-  "version": "1.0.13",
-  "desc": "添加用户行为埋点功能",
+  "version": "1.0.14",
+  "desc": "优化默认tab显示逻辑，避免页面闪烁",
   "outputPath": "./dist",
   "ignoreFiles": [
     "node_modules/**/*",

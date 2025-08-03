@@ -1,5 +1,7 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "skeleton": "/components/skeleton/skeleton"
+  },
   "navigationBarTitleText": "搜索股票",
   "navigationStyle": "custom"
 }

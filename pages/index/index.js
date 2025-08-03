@@ -15,11 +15,12 @@ Page({
     hotStocks: [],
     hotStocksLoading: true,
     hotStocksLoadFailed: false, // 热门搜索是否加载失败
-    currentTab: 'hot', // 默认显示热门搜索
+    currentTab: '', // 初始不设置，等数据加载完成后决定
     currentTabIndex: 0, // 当前tab的索引，用于swiper
     safeAreaTop: 0, // 安全区域顶部高度
     isFirstLoad: true, // 标记是否首次加载
-    tabList: ['hot', 'recent', 'favorites'] // tab列表，对应swiper的索引
+    tabList: ['hot', 'recent', 'favorites'], // tab列表，对应swiper的索引
+    initialLoading: true // 初始加载状态，用于延迟渲染
   },
 
   async onLoad() {
@@ -41,6 +42,11 @@ Page({
     
     // 设置默认tab
     this.setDefaultTab()
+    
+    // 数据加载完成，关闭初始加载状态
+    this.setData({
+      initialLoading: false
+    })
     
     // 创建防抖搜索函数
     this.debouncedSearch = util.debounce(this.performSearch.bind(this), 500)
@@ -73,7 +79,11 @@ Page({
 
   // 设置默认Tab
   setDefaultTab() {
-    const favoriteStocks = util.getStorage('favorite_stocks', [])
+    // 优先使用已加载的自选股数据，其次使用本地缓存
+    const favoriteStocks = this.data.favoriteStocks.length > 0 
+      ? this.data.favoriteStocks 
+      : util.getStorage('favorite_stocks', [])
+    
     if (favoriteStocks.length > 0) {
       // 如果有自选股，默认显示自选tab
       const tabIndex = this.data.tabList.indexOf('favorites')
@@ -81,8 +91,14 @@ Page({
         currentTab: 'favorites',
         currentTabIndex: tabIndex
       })
+    } else {
+      // 如果没有自选股，显示热门搜索tab
+      const tabIndex = this.data.tabList.indexOf('hot')
+      this.setData({
+        currentTab: 'hot',
+        currentTabIndex: tabIndex
+      })
     }
-    // 如果没有自选股，保持默认的热门搜索tab
   },
 
   // 加载最近搜索

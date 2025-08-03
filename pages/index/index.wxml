@@ -1,7 +1,15 @@
 <!--pages/search/search.wxml-->
 <view class="container">
-  <!-- 固定顶部区域 -->
-  <view class="fixed-header">
+  <!-- 初始加载状态 -->
+  <view wx:if="{{initialLoading}}" class="initial-loading">
+    <!-- 使用骨架屏组件 -->
+    <skeleton type="search" />
+  </view>
+
+  <!-- 主要内容（数据加载完成后显示） -->
+  <view wx:else>
+    <!-- 固定顶部区域 -->
+    <view class="fixed-header">
     <!-- 安全区域占位 -->
     <view class="safe-area-top" style="height: {{safeAreaTop}}px;"></view>
     
@@ -227,5 +235,6 @@
         </swiper-item>
       </swiper>
     </view>
+  </view>
   </view>
 </view>
