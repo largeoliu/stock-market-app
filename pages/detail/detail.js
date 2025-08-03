@@ -76,7 +76,6 @@ Page({
   onLoad(options) {
     // 开始监控详情页加载性能
     performanceMonitor.startTimer('page_load_detail')
-    console.log('[Detail] 详情页开始加载')
     
     const { symbol, name, market, from } = options
     
@@ -104,7 +103,6 @@ Page({
     // 并行加载数据，提升加载性能
     this.loadDataInParallel()
     
-    console.log('[Detail] 详情页基础信息设置完成')
   },
 
   onReady() {
@@ -126,7 +124,6 @@ Page({
 
   // 并行加载所有数据 - 详情页性能优化版
   async loadDataInParallel() {
-    console.log('[Detail] 开始并行加载数据')
     
     try {
       // 立即更新收藏状态（同步操作）
@@ -155,7 +152,6 @@ Page({
         dataType: this.data.currentDataType
       })
       
-      console.log('[Detail] 详情页加载完成')
       
       // 检查内存使用
       performanceMonitor.checkMemoryUsage('detail_load')
@@ -197,7 +193,6 @@ Page({
     try {
       await this.loadStockData()
       const loadTime = Date.now() - startTime
-      console.log('[Detail] 股票数据加载完成，耗时:', loadTime, 'ms')
       
     } catch (error) {
       const loadTime = Date.now() - startTime
@@ -215,7 +210,6 @@ Page({
     try {
       await this.loadStableShareholders()
       const loadTime = Date.now() - startTime
-      console.log('[Detail] 稳定股东数据加载完成，耗时:', loadTime, 'ms')
       
     } catch (error) {
       const loadTime = Date.now() - startTime
@@ -256,8 +250,6 @@ Page({
       this.data.currentPeriod
     )
     
-    console.log('获取到的历史数据:', historyData)
-    console.log('数据长度:', historyData.length)
     
     // 格式化历史数据显示
     const formattedHistoryData = historyData.map(item => ({
@@ -265,7 +257,6 @@ Page({
       marketCapFormatted: stockAPI.formatMarketCap(item.marketCap)
     }))
     
-    console.log('格式化后的数据:', formattedHistoryData.slice(0, 3))
     
     this.setData({
       historyData: formattedHistoryData
@@ -285,7 +276,6 @@ Page({
       endDate
     )
     
-    console.log('获取到的实际换手率数据:', turnoverData)
     
     this.setData({
       turnoverData: turnoverData
@@ -298,24 +288,15 @@ Page({
   // 计算统计信息
   calculateStats(data) {
     if (!data || data.length === 0) {
-      console.log('calculateStats: 没有数据')
       return
     }
 
-    console.log('calculateStats: 开始计算统计信息，数据长度:', data.length)
     
     const marketCaps = data.map(item => item.marketCap)
     const currentMarketCap = marketCaps[marketCaps.length - 1]
     const maxMarketCap = Math.max(...marketCaps)
     const minMarketCap = Math.min(...marketCaps)
     const avgMarketCap = marketCaps.reduce((sum, val) => sum + val, 0) / marketCaps.length
-    
-    console.log('市值数据:', {
-      currentMarketCap,
-      maxMarketCap,
-      minMarketCap,
-      avgMarketCap
-    })
     
     // 计算当前市值分位（当前值在历史数据中的百分位）
     const sortedMarketCaps = [...marketCaps].sort((a, b) => a - b)
@@ -324,7 +305,6 @@ Page({
     // 分位数 = 小于当前值的数据个数 / 总数据个数 * 100
     const percentile = ((countBelow / marketCaps.length) * 100).toFixed(1)
 
-    console.log('计算的分位数:', percentile)
 
     const statsData = {
       currentMarketCap,
@@ -338,7 +318,6 @@ Page({
       minMarketCapFormatted: stockAPI.formatMarketCap(minMarketCap)
     }
     
-    console.log('格式化后的统计数据:', statsData)
 
     this.setData({
       stats: statsData
@@ -354,7 +333,6 @@ Page({
       })
       
       const shareholdersData = await stockAPI.getStableShareholders(this.data.stock.symbol)
-      console.log('稳定股东数据:', shareholdersData)
       
       this.setData({
         'stableShareholders.data': shareholdersData,
@@ -373,11 +351,9 @@ Page({
   // 计算实际换手率统计信息
   calculateTurnoverStats(data) {
     if (!data || data.length === 0) {
-      console.log('calculateTurnoverStats: 没有数据')
       return
     }
 
-    console.log('calculateTurnoverStats: 开始计算实际换手率统计信息，数据长度:', data.length)
     
     const turnovers = data.map(item => item.actual_turnover)
     const currentTurnover = turnovers[turnovers.length - 1]
@@ -391,13 +367,6 @@ Page({
     // 分位数 = 小于当前值的数据个数 / 总数据个数 * 100
     const percentile = ((countBelow / turnovers.length) * 100).toFixed(1)
     
-    console.log('实际换手率数据:', {
-      currentTurnover,
-      maxTurnover,
-      minTurnover,
-      percentile
-    })
-
     // 判断流动性类型
     const liquidityType = currentTurnover < 5 ? 'discount' : 'premium'
     const liquidityLabel = currentTurnover < 5 ? '低流动性' : '高流动性'
@@ -412,7 +381,6 @@ Page({
       liquidityLabel: liquidityLabel
     }
     
-    console.log('格式化后的实际换手率统计数据:', turnoverStatsData)
 
     this.setData({
       turnoverStats: turnoverStatsData
@@ -664,7 +632,6 @@ Page({
         }
       }
       
-      console.log(`自选股${isRemoving ? '删除' : '添加'}成功:`, stock.name)
       
       // 通知首页刷新自选列表
       this.notifyIndexPageRefresh()
@@ -727,7 +694,6 @@ Page({
     const indexPage = pages.find(page => page.route === 'pages/index/index')
     
     if (indexPage && indexPage.loadFavorites) {
-      console.log('通知首页刷新自选列表')
       // 异步调用，不阻塞当前操作
       setTimeout(() => {
         indexPage.loadFavorites()
@@ -787,7 +753,6 @@ Page({
         }
       }
     } catch (error) {
-      console.log('清除搜索状态失败:', error)
     }
   }
 })

@@ -25,7 +25,6 @@ Page({
   async onLoad() {
     // 开始监控页面加载性能
     performanceMonitor.startTimer('page_load_index')
-    console.log('[Index] 首页开始加载')
     
     // 获取系统信息，设置安全区域
     const systemInfo = wx.getSystemInfoSync()
@@ -53,7 +52,6 @@ Page({
       hotStockCount: this.data.hotStocks.length
     })
     
-    console.log('[Index] 首页加载完成')
     
     // 检查内存使用
     performanceMonitor.checkMemoryUsage('index_load')
@@ -98,13 +96,10 @@ Page({
     try {
       this.setData({ hotStocksLoading: true })
       
-      console.log('[Index] 发起热门股票请求')
       const response = await stockAPI.getHotSearchStocks()
-      console.log('热门搜索数据:', response)
       
       if (response && response.results) {
         // API已经格式化了数据，直接使用
-        console.log('热门股票数据已格式化:', response.results.slice(0, 3))
         
         this.setData({ 
           hotStocks: response.results,
@@ -127,7 +122,6 @@ Page({
 
   // 重试加载热门搜索
   retryLoadHotStocks() {
-    console.log('用户手动重试热门搜索')
     this.loadHotStocks()
   },
 
@@ -155,7 +149,6 @@ Page({
 
     // 如果切换到热门搜索，且之前加载失败或没有数据，则重新加载
     if (tab === 'hot' && (this.data.hotStocksLoadFailed || this.data.hotStocks.length === 0)) {
-      console.log('重新加载热门搜索数据')
       this.loadHotStocks()
     }
   },
@@ -178,7 +171,6 @@ Page({
 
     // 如果滑动到热门搜索，且之前加载失败或没有数据，则重新加载
     if (tab === 'hot' && (this.data.hotStocksLoadFailed || this.data.hotStocks.length === 0)) {
-      console.log('重新加载热门搜索数据')
       this.loadHotStocks()
     }
   },
@@ -248,7 +240,6 @@ Page({
     // 埋点：点击热门股票
     track.hotStockClick(stock.symbol, stock.name, index)
     
-    console.log('热门股票点击跳转:', stock)
     this.selectStock(stock, 'hot')
   },
 
@@ -324,19 +315,6 @@ Page({
     })
   },
 
-  // 删除单个搜索记录
-  deleteRecentItem(e) {
-    
-    const index = e.currentTarget.dataset.index
-    const recentSearches = util.getStorage('recent_searches', [])
-    
-    recentSearches.splice(index, 1)
-    util.setStorage('recent_searches', recentSearches)
-    
-    this.setData({ recentSearches: recentSearches.slice(0, 20) })
-    util.showToast('已删除', 'success')
-  },
-
   // 取消搜索
   onCancel() {
     this.setData({
@@ -348,7 +326,6 @@ Page({
 
   // 并行加载所有数据 - 简化版本
   async loadDataInParallel() {
-    console.log('[Index] 开始并行加载数据')
     
     try {
       // 立即加载本地数据（非异步操作）
@@ -367,7 +344,6 @@ Page({
       // 处理加载结果
       this.handleLoadResults(results)
       
-      console.log('[Index] 并行数据加载完成')
       
     } catch (error) {
       console.error('[Index] 并行数据加载失败:', error)
@@ -405,7 +381,6 @@ Page({
     try {
       await this.loadFavorites()
       const loadTime = Date.now() - startTime
-      console.log('[Index] 自选股加载完成，耗时:', loadTime, 'ms')
       
       performanceMonitor.reportPerformance('data_load_favorites', {
         loadTime,
@@ -436,7 +411,6 @@ Page({
     try {
       await this.loadHotStocks()
       const loadTime = Date.now() - startTime
-      console.log('[Index] 热门股票加载完成，耗时:', loadTime, 'ms')
       
       performanceMonitor.reportPerformance('data_load_hot_stocks', {
         loadTime,
@@ -478,7 +452,6 @@ Page({
       const app = getApp()
       app.globalData.favoriteStocks = sortedStocks
       
-      console.log('从本地缓存更新自选股列表:', sortedStocks.length, '只')
     } catch (error) {
       console.error('从本地缓存更新自选股失败:', error)
     }
@@ -487,7 +460,6 @@ Page({
   // 加载自选列表
   async loadFavorites() {
     try {
-      console.log('开始加载自选股列表')
       
       // 检查app.js是否已经完成数据迁移
       const app = getApp()
@@ -498,7 +470,6 @@ Page({
       
       if (migrationCompleted && migrationResult) {
         // 如果迁移已完成，直接使用迁移结果，避免重复请求
-        console.log('使用app.js迁移结果，避免重复请求')
         favoriteData = migrationResult
         
         // 清除迁移结果缓存，避免下次误用
@@ -507,7 +478,6 @@ Page({
         // 如果迁移未完成或失败，则发起网络请求
         try {
           favoriteData = await stockAPI.getFavorites()
-          console.log('从服务端获取自选股成功:', favoriteData.count, '只')
           
           // 更新本地存储作为缓存
           if (favoriteData.favorites && favoriteData.favorites.length > 0) {
@@ -532,7 +502,6 @@ Page({
         return timeB - timeA // 倒序排列
       })
       
-      console.log('自选列表排序后:', sortedStocks.map(s => ({ name: s.name, time: s.timestamp })))
       
       this.setData({
         favoriteStocks: sortedStocks
@@ -568,23 +537,6 @@ Page({
     })
   },
 
-  // 删除自选
-  deleteFavoriteItem(e) {
-    
-    const index = e.currentTarget.dataset.index
-    const stock = this.data.favoriteStocks[index]
-    
-    wx.showModal({
-      title: '确认删除',
-      content: `确定要取消自选 ${stock.name} 吗？`,
-      success: (res) => {
-        if (res.confirm) {
-          this.removeFavoriteItem(index)
-        }
-      }
-    })
-  },
-
   // 删除自选项  
   async removeFavoriteItem(index) {
     const stock = this.data.favoriteStocks[index]
@@ -609,7 +561,6 @@ Page({
     // 调用服务端API删除
     try {
       await stockAPI.removeFavorite(stock.symbol)
-      console.log(`服务端删除自选股成功: ${stock.name}`)
       
       // 埋点：删除自选
       track.favoriteRemove(stock.symbol, stock.name, 'index')

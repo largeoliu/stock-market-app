@@ -39,7 +39,6 @@ class PerformanceMonitor {
         performanceReport = require('./performance-report.js')
       }
     } catch (error) {
-      console.log('[性能监控] 报告模块初始化失败:', error.message)
     }
   }
 
@@ -54,7 +53,6 @@ class PerformanceMonitor {
       startTime: Date.now(),
       phases: {}
     })
-    console.log(`[性能监控] 开始计时: ${key}`)
   }
 
   /**
@@ -68,7 +66,6 @@ class PerformanceMonitor {
     const timer = this.timers.get(key)
     if (timer) {
       timer.phases[phase] = Date.now() - timer.startTime
-      console.log(`[性能监控] ${key} - ${phase}: ${timer.phases[phase]}ms`)
     }
   }
 
@@ -91,7 +88,6 @@ class PerformanceMonitor {
       ...context
     }
 
-    console.log(`[性能监控] 完成计时: ${key} - 总耗时: ${totalTime}ms`, result)
 
     // 根据不同类型上报
     this.reportPerformance(key, result)
@@ -294,7 +290,6 @@ class PerformanceMonitor {
    */
   setThresholds(thresholds) {
     this.thresholds = { ...this.thresholds, ...thresholds }
-    console.log('[性能监控] 更新性能阈值:', this.thresholds)
   }
 
   /**
@@ -314,7 +309,6 @@ class PerformanceMonitor {
       summary.detailedReport = reportSummary
     }
     
-    console.log('[性能监控] 性能摘要:', summary)
     return summary
   }
 
@@ -337,7 +331,6 @@ class PerformanceMonitor {
    */
   setEnabled(enabled) {
     this.isEnabled = enabled
-    console.log(`[性能监控] ${enabled ? '已启用' : '已禁用'}`)
   }
 
   /**
@@ -347,7 +340,6 @@ class PerformanceMonitor {
     this.timers.clear()
     this.metrics.clear()
     this.isEnabled = false
-    console.log('[性能监控] 已清理资源')
   }
 }
 

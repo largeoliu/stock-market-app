@@ -23,7 +23,6 @@ class Track {
         ...params
       };
 
-      console.log(`[埋点] ${eventName}:`, commonParams);
 
       wx.reportEvent(eventName, commonParams);
     } catch (error) {
@@ -294,7 +293,6 @@ class Track {
    */
   setEnabled(enabled) {
     this.isEnabled = enabled;
-    console.log(`埋点${enabled ? '已启用' : '已禁用'}`);
   }
 
   /**

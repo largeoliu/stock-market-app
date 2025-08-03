@@ -17,7 +17,6 @@ yarn-error.log*
 .env.production.local
 
 # IDE配置文件
-.vscode/
 .idea/
 
 # 系统文件
@@ -34,3 +33,10 @@ utils/api-config.js
 # 构建输出
 dist/
 build/
+
+# 微信开发者工具
+project.private.config.json
+
+# 组件样式编译文件
+app.globals.css
+tailwind.config.ts

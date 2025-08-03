@@ -218,7 +218,6 @@ class PerformanceReport {
         healthScore: this.calculateHealthScore()
       }
       
-      console.log('📊 [性能报告]', JSON.stringify(report, null, 2))
       
       // 上报性能报告
       this.uploadReport(report)
@@ -434,7 +433,6 @@ class PerformanceReport {
       )
     })
     
-    console.log('[性能报告] 清理旧数据完成')
   }
 
   /**
@@ -443,7 +441,6 @@ class PerformanceReport {
    */
   setEnabled(enabled) {
     this.isEnabled = enabled
-    console.log(`[性能报告] ${enabled ? '已启用' : '已禁用'}`)
   }
 }
 
