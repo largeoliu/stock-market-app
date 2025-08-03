@@ -1,5 +1,5 @@
 module.exports = {
-  "version": "1.0.14",
+  "version": "1.0.15",
   "desc": "优化默认tab显示逻辑，避免页面闪烁",
   "outputPath": "./dist",
   "ignoreFiles": [
@@ -31,6 +31,6 @@ module.exports = {
     "beforeDeploy": [],
     "afterDeploy": []
   },
-  "lastUpload": "2025-08-03T00:36:27.175Z",
+  "lastUpload": "2025-08-03T02:16:00.005Z",
   "deployHistory": []
 };

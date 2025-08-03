@@ -14,7 +14,8 @@
       "Bash(npm test)",
       "Bash(git add:*)",
       "Bash(npm test:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": []
   }
