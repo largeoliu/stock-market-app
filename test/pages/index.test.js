@@ -177,7 +177,7 @@ describe('首页 (pages/index/index.js) 测试', () => {
   })
 
   describe('删除功能', () => {
-    test('deleteRecentItem 应正确删除最近搜索记录', () => {
+    test('deleteRecentItem 应正确删除最近查看记录', () => {
       const mockRecentSearches = [
         { symbol: '000001', name: '平安银行' },
         { symbol: '000002', name: '万科A' }
@@ -269,7 +269,7 @@ describe('首页 (pages/index/index.js) 测试', () => {
   })
 
   describe('股票选择功能', () => {
-    test('selectStock 应添加到最近搜索并跳转详情页', () => {
+    test('selectStock 应添加到最近查看并跳转详情页', () => {
       const selectStock = (stock) => {
         // 跳转到详情页
         mockWx.navigateTo({
@@ -296,7 +296,7 @@ describe('首页 (pages/index/index.js) 测试', () => {
       expect(mockWx.navigateTo).toHaveBeenCalled()
     })
 
-    test('addToRecentSearches 应正确添加到最近搜索', () => {
+    test('addToRecentSearches 应正确添加到最近查看', () => {
       const existingSearches = [
         { symbol: '000002', name: '万科A', timestamp: 1000 }
       ]

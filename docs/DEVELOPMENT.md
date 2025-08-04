@@ -96,12 +96,12 @@ tabSwitch(fromTab, toTab)                 // 标签切换
    - 搜索历史记录
 
 2. **Tab切换**
-   - 热门搜索 / 最近搜索 / 我的自选
+   - 热门股票 / 最近查看 / 我的自选
    - 支持点击和滑动切换
    - 状态同步和埋点统计
 
 3. **列表操作**
-   - 滑动删除（最近搜索、自选股）
+   - 滑动删除（最近查看、自选股）
    - 一键清空操作
    - 确认弹窗保护
 
@@ -208,7 +208,7 @@ clearPreviousPageSearchState() {
 data: {
   keyword: '',              // 搜索关键词
   searchResults: [],        // 搜索结果
-  recentSearches: [],       // 最近搜索
+  recentSearches: [],       // 最近查看
   favoriteStocks: [],       // 自选股票
   currentTab: 'hot',        // 当前标签
   currentTabIndex: 0,       // 标签索引
@@ -229,7 +229,7 @@ data: {
 ### 数据持久化
 ```javascript
 // 本地存储键值
-'recent_searches'    // 最近搜索历史
+'recent_searches'    // 最近查看历史
 'favorite_stocks'    // 自选股票列表
 
 // 存储格式

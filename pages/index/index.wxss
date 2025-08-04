@@ -285,7 +285,7 @@
   font-size: 28rpx;
 }
 
-/* 热门搜索 */
+/* 热门股票 */
 .hot-stocks-loading {
   display: flex;
   align-items: center;
@@ -299,7 +299,7 @@
   font-size: 28rpx;
 }
 
-/* 热门搜索错误状态 */
+/* 热门股票错误状态 */
 .hot-stocks-error {
   text-align: center;
   padding: 80rpx 40rpx;
@@ -396,7 +396,7 @@
   font-weight: 400;
 }
 
-/* 最近搜索头部 */
+/* 最近查看头部 */
 .recent-header {
   display: flex;
   justify-content: flex-end;
@@ -428,7 +428,7 @@
   color: #999;
 }
 
-/* 最近搜索 */
+/* 最近查看 */
 .recent-searches {
   background: white;
   border-radius: 12rpx;

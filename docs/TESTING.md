@@ -95,7 +95,7 @@ describe('首页 (pages/index/index.js) 测试', () => {
   })
   
   describe('删除功能', () => {
-    test('deleteRecentItem 应正确删除最近搜索记录')
+    test('deleteRecentItem 应正确删除最近查看记录')
     test('clearAllRecentSearches 应清空所有搜索记录')
   })
 })

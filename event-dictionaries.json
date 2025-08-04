@@ -55,11 +55,11 @@
     "dict_list": [
       {
         "key": "hot",
-        "value": "热门搜索"
+        "value": "热门股票"
       },
       {
         "key": "recent",
-        "value": "最近搜索"
+        "value": "最近查看"
       },
       {
         "key": "favorites",

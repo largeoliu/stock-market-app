@@ -42,7 +42,7 @@ GET /api/stock/search?keyword={keyword}
 
 ### 2. 热门股票
 
-#### 获取热门搜索股票
+#### 获取热门股票股票
 ```http
 GET /api/stock/hot
 ```
@@ -167,7 +167,7 @@ GET /api/stock/stable-shareholders?symbol={symbol}
 async searchStock(keyword)
 
 /**
- * 获取热门搜索股票
+ * 获取热门股票股票
  * @returns {Promise<Object>} 热门股票数据
  */
 async getHotSearchStocks()

@@ -466,8 +466,8 @@ class StockAPI {
   }
 
   /**
-   * 获取热门搜索股票
-   * @returns {Promise} 热门搜索数据
+   * 获取热门股票股票
+   * @returns {Promise} 热门股票数据
    */
   async getHotSearchStocks() {
     // 生成缓存键
@@ -490,9 +490,9 @@ class StockAPI {
   }
 
   /**
-   * 格式化热门搜索数据
-   * @param {Array|Object} rawData - 原始热门搜索数据
-   * @returns {Object} 格式化后的热门搜索数据
+   * 格式化热门股票数据
+   * @param {Array|Object} rawData - 原始热门股票数据
+   * @returns {Object} 格式化后的热门股票数据
    */
   formatHotSearchData(rawData) {
     

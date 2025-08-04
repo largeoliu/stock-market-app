@@ -14,7 +14,7 @@ Page({
     showResults: false,
     hotStocks: [],
     hotStocksLoading: true,
-    hotStocksLoadFailed: false, // 热门搜索是否加载失败
+    hotStocksLoadFailed: false, // 热门股票是否加载失败
     currentTab: '', // 初始不设置，等数据加载完成后决定
     currentTabIndex: 0, // 当前tab的索引，用于swiper
     safeAreaTop: 0, // 安全区域顶部高度
@@ -92,7 +92,7 @@ Page({
         currentTabIndex: tabIndex
       })
     } else {
-      // 如果没有自选股，显示热门搜索tab
+      // 如果没有自选股，显示热门股票tab
       const tabIndex = this.data.tabList.indexOf('hot')
       this.setData({
         currentTab: 'hot',
@@ -101,13 +101,13 @@ Page({
     }
   },
 
-  // 加载最近搜索
+  // 加载最近查看
   loadRecentSearches() {
     const recentSearches = util.getStorage('recent_searches', [])
     this.setData({ recentSearches: recentSearches.slice(0, 20) })
   },
 
-  // 加载热门搜索股票 - 简化版本，主要用于重试和其他场景
+  // 加载热门股票股票 - 简化版本，主要用于重试和其他场景
   async loadHotStocks() {
     try {
       this.setData({ hotStocksLoading: true })
@@ -136,7 +136,7 @@ Page({
     }
   },
 
-  // 重试加载热门搜索
+  // 重试加载热门股票
   retryLoadHotStocks() {
     this.loadHotStocks()
   },
@@ -163,7 +163,7 @@ Page({
       fail: () => {}
     })
 
-    // 如果切换到热门搜索，且之前加载失败或没有数据，则重新加载
+    // 如果切换到热门股票，且之前加载失败或没有数据，则重新加载
     if (tab === 'hot' && (this.data.hotStocksLoadFailed || this.data.hotStocks.length === 0)) {
       this.loadHotStocks()
     }
@@ -185,7 +185,7 @@ Page({
       currentTabIndex: currentIndex
     })
 
-    // 如果滑动到热门搜索，且之前加载失败或没有数据，则重新加载
+    // 如果滑动到热门股票，且之前加载失败或没有数据，则重新加载
     if (tab === 'hot' && (this.data.hotStocksLoadFailed || this.data.hotStocks.length === 0)) {
       this.loadHotStocks()
     }
@@ -259,7 +259,7 @@ Page({
     this.selectStock(stock, 'hot')
   },
 
-  // 点击最近搜索
+  // 点击最近查看
   onRecentTap(e) {
     const stock = e.currentTarget.dataset.stock
     
@@ -271,7 +271,7 @@ Page({
 
   // 选择股票
   selectStock(stock, from = '') {
-    // 添加到最近搜索
+    // 添加到最近查看
     this.addToRecentSearches(stock)
     
     // 跳转到详情页，传递来源信息
@@ -281,7 +281,7 @@ Page({
     })
   },
 
-  // 添加到最近搜索
+  // 添加到最近查看
   addToRecentSearches(stock) {
     let recentSearches = util.getStorage('recent_searches', [])
     

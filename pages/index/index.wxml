@@ -49,14 +49,14 @@
         data-tab="hot"
         bindtap="onTabChange"
       >
-        热门搜索
+        热门股票
       </view>
       <view 
         class="tab-item {{currentTab === 'recent' ? 'active' : ''}}"
         data-tab="recent"
         bindtap="onTabChange"
       >
-        最近搜索
+        最近查看
       </view>
       <view 
         class="tab-item {{currentTab === 'favorites' ? 'active' : ''}}"
@@ -120,7 +120,7 @@
         duration="300"
         easing-function="easeInOutCubic"
       >
-        <!-- 热门搜索 -->
+        <!-- 热门股票 -->
         <swiper-item class="tab-panel">
           <!-- 加载状态 -->
           <view wx:if="{{hotStocksLoading}}" class="hot-stocks-loading">
@@ -161,7 +161,7 @@
           </view>
         </swiper-item>
         
-        <!-- 最近搜索 -->
+        <!-- 最近查看 -->
         <swiper-item class="tab-panel">
           <view wx:if="{{recentSearches.length > 0}}">
             <view class="recent-header">
@@ -188,7 +188,7 @@
             </view>
           </view>
           
-          <!-- 无最近搜索 -->
+          <!-- 无最近查看 -->
           <view wx:else class="empty-recent">
             <text class="empty-icon">🕒</text>
             <text class="empty-text">暂无搜索记录</text>

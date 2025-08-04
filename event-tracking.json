@@ -25,7 +25,7 @@
   {
     "event_id": "hot_stock_click",
     "event_name": "热门股票点击",
-    "event_comment": "用户点击热门搜索列表中的股票",
+    "event_comment": "用户点击热门股票列表中的股票",
     "report_src": 0,
     "event_key_list": [
       "stock_symbol",
@@ -37,7 +37,7 @@
   {
     "event_id": "recent_search_click",
     "event_name": "历史搜索点击",
-    "event_comment": "用户点击最近搜索记录中的股票",
+    "event_comment": "用户点击最近查看记录中的股票",
     "report_src": 0,
     "event_key_list": [
       "stock_symbol",
@@ -129,7 +129,7 @@
   {
     "event_id": "tab_switch",
     "event_name": "Tab切换",
-    "event_comment": "用户在首页切换不同的Tab标签(热门搜索/最近搜索/自选股)",
+    "event_comment": "用户在首页切换不同的Tab标签(热门股票/最近查看/自选股)",
     "report_src": 0,
     "event_key_list": [
       "from_tab",
