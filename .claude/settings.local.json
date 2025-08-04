@@ -15,7 +15,9 @@
       "Bash(git add:*)",
       "Bash(npm test:*)",
       "Bash(sed:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(npm install:*)",
+      "Bash(npm search:*)"
     ],
     "deny": []
   }
