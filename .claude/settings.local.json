@@ -17,7 +17,11 @@
       "Bash(sed:*)",
       "Bash(npm run dev:*)",
       "Bash(npm install:*)",
-      "Bash(npm search:*)"
+      "Bash(npm search:*)",
+      "Bash(killall:*)",
+      "Bash(ls:*)",
+      "Bash(osascript:*)",
+      "Bash(open /Applications/Claude.app)"
     ],
     "deny": []
   }

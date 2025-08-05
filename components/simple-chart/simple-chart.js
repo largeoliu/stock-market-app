@@ -29,15 +29,15 @@ Component({
     showTooltip: false, // 是否显示提示信息
     isThrottling: false, // 节流标志
     lastTouchTime: 0, // 上次触摸时间
-    pendingTouch: null // 待处理的触摸事件
+    pendingTouch: null, // 待处理的触摸事件
+    canvas: null, // Canvas 实例
+    ctx: null, // 绘图上下文
+    dpr: 1 // 设备像素比
   },
 
   ready() {
-    // 组件准备好后绘制图表
-    this.drawChart()
-    
-    // 绑定触摸事件
-    this.bindTouchEvents()
+    // 初始化 Canvas 2D
+    this.initCanvas()
   },
 
   observers: {
@@ -52,15 +52,52 @@ Component({
   },
 
   methods: {
+    // 初始化 Canvas 2D
+    initCanvas() {
+      const query = wx.createSelectorQuery().in(this)
+      query.select('#simple-chart')
+        .fields({ node: true, size: true })
+        .exec((res) => {
+          if (!res[0]) return
+          
+          const canvas = res[0].node
+          const ctx = canvas.getContext('2d')
+          
+          // 获取设备像素比
+          const dpr = wx.getSystemInfoSync().pixelRatio
+          
+          // 设置画布实际宽高
+          canvas.width = res[0].width * dpr
+          canvas.height = res[0].height * dpr
+          
+          // 缩放绘图上下文
+          ctx.scale(dpr, dpr)
+          
+          // 保存实例
+          this.setData({
+            canvas: canvas,
+            ctx: ctx,
+            dpr: dpr
+          })
+          
+          // 绘制图表
+          this.drawChart()
+          
+          // 绑定触摸事件
+          this.bindTouchEvents()
+        })
+    },
+
     drawChart() {
       const { data, xData, width, height, dataType } = this.properties
+      const { ctx } = this.data
+      
+      if (!ctx) return
       
       if (!data || data.length === 0) {
         this.drawEmpty()
         return
       }
-
-      const ctx = wx.createCanvasContext(this.data.canvasId, this)
       
       // 清空画布
       ctx.clearRect(0, 0, width, height)
@@ -69,7 +106,7 @@ Component({
       const gradient = ctx.createLinearGradient(0, 0, 0, height)
       gradient.addColorStop(0, '#FAFBFC')
       gradient.addColorStop(1, '#F5F7FA')
-      ctx.setFillStyle(gradient)
+      ctx.fillStyle = gradient
       ctx.fillRect(0, 0, width, height)
       
       // 计算绘图区域 - 为信息面板留出空间
@@ -104,17 +141,17 @@ Component({
       
       // 绘制悬停指示器
       if (this.data.showTooltip && this.data.hoveredIndex !== -1) {
-        this.drawHoverIndicator(ctx, data, leftPadding, topPadding, chartWidth, chartHeight, minValue, Math.max(maxValue - minValue, 1))
+        this.drawHoverIndicator(ctx, data, leftPadding, topPadding, chartWidth, chartHeight, minValue, Math.max(maxValue - minValue, 1)
       }
       
       // 执行绘制
-      ctx.draw()
+      // Canvas 2D 不需要 draw() 方法
     },
 
     drawGrid(ctx, leftPadding, topPadding, chartWidth, chartHeight) {
       // 网格线 - Longbridge风格
-      ctx.setStrokeStyle('rgba(0, 0, 0, 0.05)')
-      ctx.setLineWidth(1)
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)'
+      ctx.lineWidth = 1
       
       // 水平网格线
       for (let i = 1; i < 4; i++) {
@@ -126,8 +163,8 @@ Component({
       }
       
       // 坐标轴
-      ctx.setStrokeStyle('rgba(0, 194, 255, 0.2)')
-      ctx.setLineWidth(1)
+      ctx.strokeStyle = 'rgba(0, 194, 255, 0.2)'
+      ctx.lineWidth = 1
       ctx.beginPath()
       ctx.moveTo(leftPadding, topPadding)
       ctx.lineTo(leftPadding, topPadding + chartHeight)
@@ -143,7 +180,7 @@ Component({
       gradient.addColorStop(0, 'rgba(0, 194, 255, 0.3)')
       gradient.addColorStop(0.5, 'rgba(0, 129, 255, 0.15)')
       gradient.addColorStop(1, 'rgba(0, 194, 255, 0.01)')
-      ctx.setFillStyle(gradient)
+      ctx.fillStyle = gradient
       
       ctx.beginPath()
       
@@ -172,10 +209,10 @@ Component({
       if (data.length < 2) return
       
       // 主线条 - Longbridge风格
-      ctx.setStrokeStyle('#00C2FF')
-      ctx.setLineWidth(1)
-      ctx.setLineCap('round')
-      ctx.setLineJoin('round')
+      ctx.strokeStyle = '#00C2FF'
+      ctx.lineWidth = 1
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
       ctx.beginPath()
 
       data.forEach((value, index) => {
@@ -193,12 +230,12 @@ Component({
     },
 
     drawLabels(ctx, data, xData, leftPadding, topPadding, chartWidth, chartHeight, minValue, maxValue, dataType) {
-      ctx.setFillStyle('#9CA3AF')
-      ctx.setFontSize(10) // 减小字体大小以适应更多内容
+      ctx.fillStyle = '#9CA3AF'
+      ctx.font = '10px sans-serif' // 减小字体大小以适应更多内容
       
       // Y轴标签
-      ctx.setTextAlign('right')
-      ctx.setTextBaseline('middle')
+      ctx.textAlign = 'right'
+      ctx.textBaseline = 'middle'
       for (let i = 0; i <= 3; i++) {
         const value = minValue + (maxValue - minValue) * (i / 3)
         const y = topPadding + chartHeight - (i / 3) * chartHeight
@@ -210,13 +247,13 @@ Component({
 
       // X轴标签 - 只显示起始和结束时间
       if (xData && xData.length > 0) {
-        ctx.setTextBaseline('top')
+        ctx.textBaseline = 'top'
         
         // 起始时间 - 左对齐
         const startDateStr = xData[0]
         const startDate = new Date(startDateStr)
         if (!isNaN(startDate.getTime())) {
-          ctx.setTextAlign('left')
+          ctx.textAlign = 'left'
           // 简化日期格式，只显示年-月-日
           const startLabel = startDate.getFullYear() + '-' + 
                             String(startDate.getMonth() + 1).padStart(2, '0') + '-' +
@@ -228,7 +265,7 @@ Component({
         const endDateStr = xData[xData.length - 1]
         const endDate = new Date(endDateStr)
         if (!isNaN(endDate.getTime())) {
-          ctx.setTextAlign('right')
+          ctx.textAlign = 'right'
           // 简化日期格式，只显示年-月-日
           const endLabel = endDate.getFullYear() + '-' + 
                           String(endDate.getMonth() + 1).padStart(2, '0') + '-' +
@@ -252,8 +289,8 @@ Component({
       const percentile = ((currentIndex / (sortedData.length - 1)) * 100).toFixed(2)
       
       // 设置文字样式
-      ctx.setTextAlign('left')
-      ctx.setTextBaseline('top')
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'top'
       
       let yOffset = 15
       
@@ -261,8 +298,8 @@ Component({
       if (hoveredDate) {
         const date = new Date(hoveredDate)
         if (!isNaN(date.getTime())) {
-          ctx.setFillStyle('#6B7280')
-          ctx.setFontSize(12)
+          ctx.fillStyle = '#6B7280'
+          ctx.font = '12px sans-serif'
           const dateLabel = date.toISOString().split('T')[0]
           ctx.fillText(dateLabel, leftPadding, yOffset)
           yOffset += 25
@@ -271,12 +308,12 @@ Component({
       
       // 显示标签和数值
       const label = dataType === 'actualTurnover' ? '实际换手率' : '市值'
-      ctx.setFillStyle('#374151')
-      ctx.setFontSize(13)
+      ctx.fillStyle = '#374151'
+      ctx.font = '13px sans-serif'
       ctx.fillText(label, leftPadding, yOffset)
       
-      ctx.setFillStyle('#00C2FF')
-      ctx.setFontSize(16)
+      ctx.fillStyle = '#00C2FF'
+      ctx.font = '16px sans-serif'
       const formattedValue = dataType === 'actualTurnover' 
         ? hoveredValue.toFixed(2) + '%' 
         : this.formatValue(hoveredValue)
@@ -284,12 +321,12 @@ Component({
       yOffset += 25
       
       // 显示分位值
-      ctx.setFillStyle('#374151')
-      ctx.setFontSize(13)
+      ctx.fillStyle = '#374151'
+      ctx.font = '13px sans-serif'
       ctx.fillText('分位值', leftPadding, yOffset)
       
-      ctx.setFillStyle('#6B7280')
-      ctx.setFontSize(16)
+      ctx.fillStyle = '#6B7280'
+      ctx.font = '16px sans-serif'
       ctx.fillText(percentile + '%', leftPadding + 60, yOffset)
     },
 
@@ -302,8 +339,8 @@ Component({
       const y = topPadding + chartHeight - ((hoveredValue - minValue) / valueRange) * chartHeight
       
       // 绘制垂直参考线
-      ctx.setStrokeStyle('rgba(0, 194, 255, 0.5)')
-      ctx.setLineWidth(1)
+      ctx.strokeStyle = 'rgba(0, 194, 255, 0.5)'
+      ctx.lineWidth = 1
       ctx.setLineDash([2, 2])
       ctx.beginPath()
       ctx.moveTo(x, topPadding)
@@ -312,9 +349,9 @@ Component({
       ctx.setLineDash([]) // 重置虚线
       
       // 绘制悬停点
-      ctx.setFillStyle('#FFFFFF')
-      ctx.setStrokeStyle('#00C2FF')
-      ctx.setLineWidth(2)
+      ctx.fillStyle = '#FFFFFF'
+      ctx.strokeStyle = '#00C2FF'
+      ctx.lineWidth = 2
       ctx.beginPath()
       ctx.arc(x, y, 4, 0, 2 * Math.PI)
       ctx.fill()
@@ -412,23 +449,25 @@ Component({
 
     drawEmpty() {
       const { width, height } = this.properties
-      const ctx = wx.createCanvasContext(this.data.canvasId, this)
+      const { ctx } = this.data
+      
+      if (!ctx) return
       
       // 背景 - Longbridge风格
       const gradient = ctx.createLinearGradient(0, 0, 0, height)
       gradient.addColorStop(0, '#FAFBFC')
       gradient.addColorStop(1, '#F5F7FA')
-      ctx.setFillStyle(gradient)
+      ctx.fillStyle = gradient
       ctx.fillRect(0, 0, width, height)
       
       // 文字
-      ctx.setFillStyle('#6B7280')
-      ctx.setFontSize(14)
-      ctx.setTextAlign('center')
-      ctx.setTextBaseline('middle')
+      ctx.fillStyle = '#6B7280'
+      ctx.font = '14px sans-serif'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
       ctx.fillText('暂无数据', width / 2, height / 2)
       
-      ctx.draw()
+      // Canvas 2D 不需要 draw() 方法
     },
 
     formatValue(value) {
@@ -476,18 +515,18 @@ Component({
 
     // 添加光晕效果
     addGlowEffect(ctx, color, blur = 10) {
-      ctx.setShadowColor(color)
-      ctx.setShadowBlur(blur)
-      ctx.setShadowOffsetX(0)
-      ctx.setShadowOffsetY(0)
+      ctx.shadowColor = color
+      ctx.shadowBlur = blur
+      ctx.shadowOffsetX = 0
+      ctx.shadowOffsetY = 0
     },
 
     // 清除光晕效果
     clearGlowEffect(ctx) {
-      ctx.setShadowColor('transparent')
-      ctx.setShadowBlur(0)
-      ctx.setShadowOffsetX(0)
-      ctx.setShadowOffsetY(0)
+      ctx.shadowColor = 'transparent'
+      ctx.shadowBlur = 0
+      ctx.shadowOffsetX = 0
+      ctx.shadowOffsetY = 0
     }
   }
 })
