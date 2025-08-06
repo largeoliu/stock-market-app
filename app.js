@@ -26,6 +26,10 @@ const appInstance = {
       this.initBackgroundTasks()
     }, 100)
     
+    // 标记初始化完成
+    this.globalData.initReady = true
+    console.log('[App] 应用初始化完成，设置 initReady = true')
+    
     // 完成启动监控
     const appLaunchResult = performanceMonitor.endTimer('app_launch', {
       launchType: this.getLaunchType(),
@@ -330,7 +334,8 @@ const appInstance = {
   globalData: {
     userInfo: null,
     apiUrl: 'https://api.example.com', // 这里需要替换为实际的API地址
-    favoriteStocks: [] // 收藏的股票列表
+    favoriteStocks: [], // 收藏的股票列表
+    initReady: false // 应用初始化完成标志
   }
 }
 

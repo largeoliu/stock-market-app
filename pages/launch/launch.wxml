@@ -1,0 +1,18 @@
+<!-- 启动页 -->
+<view class="launch-container">
+  <!-- 渐变背景 -->
+  <view class="gradient-bg"></view>
+  
+  <!-- 内容区域 -->
+  <view class="content">
+    <!-- 应用名称 -->
+    <view class="app-title">股值通</view>
+    
+    <!-- 加载动画 -->
+    <view class="loading-dots">
+      <view class="dot dot-1"></view>
+      <view class="dot dot-2"></view>
+      <view class="dot dot-3"></view>
+    </view>
+  </view>
+</view>
