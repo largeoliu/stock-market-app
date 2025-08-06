@@ -27,30 +27,41 @@ Page({
     // 开始监控页面加载性能
     performanceMonitor.startTimer('page_load_index')
     
+    // 检查是否有预加载数据，决定是否显示骨架屏
+    const app = getApp()
+    const hasPreloadData = !!(app?.globalData?.homeData)
+    
     // 获取系统信息，设置安全区域
     const windowInfo = wx.getWindowInfo()
-    this.setData({
-      safeAreaTop: windowInfo.safeArea?.top || windowInfo.statusBarHeight || 0
-    })
     
-    performanceMonitor.markPhase('page_load_index', 'system_info_ready')
-    
-    // 检查是否有预加载数据
-    const app = getApp()
-    let usedPreloadData = false
-    
-    if (app && app.globalData && app.globalData.homeData) {
-      const { hotStocks, favorites, hasError, skipped } = app.globalData.homeData
+    // 如果有预加载数据，立即关闭骨架屏
+    if (hasPreloadData) {
+      const { hotStocks, favorites } = app.globalData.homeData
       
-      console.log('[Index] 使用预加载数据')
+      console.log('[Index] 使用预加载数据，直接显示内容')
       
-      // 立即设置数据，避免白屏
+      // 一次性设置所有数据，避免多次渲染
       this.setData({
+        safeAreaTop: windowInfo.safeArea?.top || windowInfo.statusBarHeight || 0,
         hotStocks: hotStocks?.results || [],
         favoriteStocks: favorites?.favorites || [],
         hotStocksLoading: false,
-        initialLoading: false  // 立即关闭骨架屏
+        initialLoading: false  // 立即关闭骨架屏，直接显示内容
       })
+    } else {
+      // 没有预加载数据，先设置基础信息
+      this.setData({
+        safeAreaTop: windowInfo.safeArea?.top || windowInfo.statusBarHeight || 0
+      })
+    }
+    
+    performanceMonitor.markPhase('page_load_index', 'system_info_ready')
+    
+    // 处理预加载数据
+    let usedPreloadData = false
+    
+    if (hasPreloadData) {
+      const { hotStocks, favorites, hasError, skipped } = app.globalData.homeData
       
       usedPreloadData = true
       

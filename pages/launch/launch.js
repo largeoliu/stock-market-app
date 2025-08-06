@@ -71,10 +71,10 @@ Page({
           return
         }
         
-        // 延迟一点跳转，确保动画流畅
+        // 稍微延迟跳转，确保首页准备就绪
         setTimeout(() => {
           this.navigateToHome()
-        }, 300)
+        }, 200) // 减少延迟，因为使用了更快的 redirectTo
         return
       }
       
@@ -96,17 +96,23 @@ Page({
   navigateToHome() {
     console.log('[Launch] 跳转到主页')
     
-    // 使用 reLaunch 替换整个页面栈
-    wx.reLaunch({
+    // 使用 redirectTo 替代 reLaunch，页面切换更快
+    wx.redirectTo({
       url: '/pages/index/index',
       success: () => {
         console.log('[Launch] 成功跳转到主页')
       },
       fail: (err) => {
-        console.error('[Launch] 跳转失败:', err)
+        console.error('[Launch] redirectTo 失败，尝试 reLaunch:', err)
         // 跳转失败时的备用方案
-        wx.switchTab({
-          url: '/pages/index/index'
+        wx.reLaunch({
+          url: '/pages/index/index',
+          fail: () => {
+            // 最后的备用方案
+            wx.switchTab({
+              url: '/pages/index/index'
+            })
+          }
         })
       }
     })

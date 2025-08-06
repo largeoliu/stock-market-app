@@ -3,5 +3,6 @@
     "skeleton": "/components/skeleton/skeleton"
   },
   "navigationBarTitleText": "搜索股票",
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "backgroundColor": "#F5F7FA"
 }
