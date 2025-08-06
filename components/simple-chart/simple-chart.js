@@ -234,12 +234,12 @@ Component({
       ctx.fillStyle = '#9CA3AF'
       ctx.font = '10px sans-serif' // 减小字体大小以适应更多内容
       
-      // Y轴标签
+      // Y轴标签 - 与网格线对齐（0%, 25%, 50%, 75%, 100%）
       ctx.textAlign = 'right'
       ctx.textBaseline = 'middle'
-      for (let i = 0; i <= 3; i++) {
-        const value = minValue + (maxValue - minValue) * (i / 3)
-        const y = topPadding + chartHeight - (i / 3) * chartHeight
+      for (let i = 0; i <= 4; i++) {
+        const value = minValue + (maxValue - minValue) * (i / 4)
+        const y = topPadding + chartHeight - (i / 4) * chartHeight
         const label = dataType === 'actualTurnover' 
           ? value.toFixed(1) + '%' 
           : this.formatValue(value)
