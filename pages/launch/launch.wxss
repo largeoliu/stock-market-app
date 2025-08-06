@@ -100,3 +100,41 @@
     opacity: 1;
   }
 }
+
+/* 错误状态样式 */
+.error-container {
+  margin-top: 60rpx;
+  text-align: center;
+}
+
+.error-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 28rpx;
+  margin-bottom: 40rpx;
+  display: block;
+}
+
+.error-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 30rpx;
+}
+
+.retry-btn, .skip-btn {
+  padding: 16rpx 48rpx;
+  border-radius: 50rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  border: none;
+}
+
+.retry-btn {
+  background-color: #FFFFFF;
+  color: #00C2FF;
+}
+
+.skip-btn {
+  background-color: transparent;
+  color: #FFFFFF;
+  border: 2rpx solid rgba(255, 255, 255, 0.5);
+}

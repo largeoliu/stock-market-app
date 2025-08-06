@@ -8,11 +8,20 @@
     <!-- 应用名称 -->
     <view class="app-title">股值通</view>
     
-    <!-- 加载动画 -->
-    <view class="loading-dots">
+    <!-- 正常加载状态 -->
+    <view wx:if="{{!loadError}}" class="loading-dots">
       <view class="dot dot-1"></view>
       <view class="dot dot-2"></view>
       <view class="dot dot-3"></view>
+    </view>
+    
+    <!-- 加载失败状态 -->
+    <view wx:else class="error-container">
+      <text class="error-text">{{errorMsg}}</text>
+      <view class="error-buttons">
+        <button class="retry-btn" bindtap="onRetry">重试</button>
+        <button class="skip-btn" bindtap="onSkip">跳过</button>
+      </view>
     </view>
   </view>
 </view>

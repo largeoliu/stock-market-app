@@ -76,6 +76,7 @@ utils/
 ## 核心特性
 
 ### 1. 性能优化
+- **启动屏优化**: 使用启动页消除白屏，预加载首页数据
 - **延迟渲染**: 使用 `initialLoading` 状态避免页面闪烁
 - **并行加载**: 同时加载热门股票和自选股数据
 - **防抖搜索**: 500ms 防抖优化搜索体验
@@ -175,6 +176,54 @@ utils/
 - v1.0.12: 性能监控和优化
 - v1.0.11: 添加用户行为埋点功能
 
+## 预加载机制
+
+### 数据预加载流程
+为了避免启动页到首页的白屏问题，项目采用了预加载机制：
+
+1. **启动流程**
+   ```
+   启动页显示 → app.js预加载数据 → 数据就绪 → 跳转首页（带数据）
+   ```
+
+2. **预加载位置**
+   - 在 `app.js` 的 `onLaunch` 中并行执行预加载
+   - 将数据存储在 `globalData.homeData` 中
+   - 设置 `globalData.homeDataReady` 标志
+
+3. **添加新的预加载请求**
+   当需要在启动时预加载新的网络数据时：
+   
+   ```javascript
+   // 1. 在 app.js 的 preloadHomeData 方法中添加新请求
+   async preloadHomeData() {
+     const [hotStocks, favorites, newData] = await Promise.allSettled([
+       stockAPI.getHotSearchStocks(),
+       stockAPI.getFavorites(),
+       stockAPI.getNewData()  // 新增的请求
+     ])
+     
+     this.globalData.homeData = {
+       hotStocks: hotStocks.value,
+       favorites: favorites.value,
+       newData: newData.value  // 新增的数据
+     }
+   }
+   
+   // 2. 在首页 index.js 的 onLoad 中使用预加载数据
+   const { hotStocks, favorites, newData } = app.globalData.homeData || {}
+   ```
+
+4. **错误处理**
+   - 使用 `Promise.allSettled` 确保部分失败不影响其他数据
+   - 检查 `hasError` 标志判断是否有加载失败
+   - 提供重试和跳过选项
+
+5. **注意事项**
+   - 预加载的数据应该是首页必需的数据
+   - 避免预加载过多数据导致启动变慢
+   - 使用后清理 `globalData.homeData` 避免重复使用
+
 ## 注意事项
 
 ### 开发注意
@@ -182,6 +231,7 @@ utils/
 2. **API配置**: 确保 `api-config.js` 配置正确
 3. **性能监控**: 新功能需要添加性能埋点
 4. **错误处理**: 所有网络请求都要有错误处理
+5. **预加载管理**: 新增首页数据时更新预加载逻辑
 
 ### 部署注意
 1. **版本号**: 每次部署前确认版本号递增

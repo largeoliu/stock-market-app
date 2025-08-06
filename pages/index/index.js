@@ -35,18 +35,50 @@ Page({
     
     performanceMonitor.markPhase('page_load_index', 'system_info_ready')
     
-    // 并行加载所有数据，提升加载性能
-    await this.loadDataInParallel()
+    // 检查是否有预加载数据
+    const app = getApp()
+    let usedPreloadData = false
+    
+    if (app && app.globalData && app.globalData.homeData) {
+      const { hotStocks, favorites, hasError, skipped } = app.globalData.homeData
+      
+      console.log('[Index] 使用预加载数据')
+      
+      // 立即设置数据，避免白屏
+      this.setData({
+        hotStocks: hotStocks?.results || [],
+        favoriteStocks: favorites?.favorites || [],
+        hotStocksLoading: false,
+        initialLoading: false  // 立即关闭骨架屏
+      })
+      
+      usedPreloadData = true
+      
+      // 清理预加载数据，避免重复使用
+      app.globalData.homeData = null
+      
+      // 如果是跳过的或者部分数据失败，后台静默重试
+      if (skipped || (hasError && (!hotStocks || !favorites))) {
+        console.log('[Index] 后台静默重试失败的数据')
+        this.silentRetryFailedData(hotStocks, favorites)
+      }
+      
+      performanceMonitor.markPhase('page_load_index', 'preload_data_used')
+    } else {
+      // 没有预加载数据，降级方案：自己加载数据
+      console.log('[Index] 没有预加载数据，自行加载')
+      await this.loadDataInParallel()
+      
+      // 数据加载完成，关闭初始加载状态
+      this.setData({
+        initialLoading: false
+      })
+    }
     
     performanceMonitor.markPhase('page_load_index', 'data_loaded')
     
     // 设置默认tab
     this.setDefaultTab()
-    
-    // 数据加载完成，关闭初始加载状态
-    this.setData({
-      initialLoading: false
-    })
     
     // 创建防抖搜索函数
     this.debouncedSearch = util.debounce(this.performSearch.bind(this), 500)
@@ -55,9 +87,9 @@ Page({
     performanceMonitor.endTimer('page_load_index', {
       pageName: 'index',
       favoriteCount: this.data.favoriteStocks.length,
-      hotStockCount: this.data.hotStocks.length
+      hotStockCount: this.data.hotStocks.length,
+      usedPreloadData: usedPreloadData
     })
-    
     
     // 检查内存使用
     performanceMonitor.checkMemoryUsage('index_load')
@@ -139,6 +171,29 @@ Page({
   // 重试加载热门股票
   retryLoadHotStocks() {
     this.loadHotStocks()
+  },
+
+  // 静默重试失败的数据
+  async silentRetryFailedData(hotStocks, favorites) {
+    try {
+      if (!hotStocks) {
+        // 后台重新加载热门股票
+        console.log('[Index] 后台重试加载热门股票')
+        setTimeout(() => {
+          this.loadHotStocks()
+        }, 1000)
+      }
+      
+      if (!favorites) {
+        // 后台重新加载自选股
+        console.log('[Index] 后台重试加载自选股')
+        setTimeout(() => {
+          this.loadFavorites()
+        }, 1500)
+      }
+    } catch (error) {
+      console.error('[Index] 静默重试失败:', error)
+    }
   },
 
   // 标签页切换

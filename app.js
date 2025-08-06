@@ -15,7 +15,8 @@ const appInstance = {
     const parallelTasks = [
       this.initCloud(),
       this.initUserAuth(),
-      this.checkForUpdate()
+      this.checkForUpdate(),
+      this.preloadHomeData()  // 预加载首页数据
     ]
     
     await Promise.allSettled(parallelTasks)
@@ -75,6 +76,84 @@ const appInstance = {
       console.log('[App] 云开发初始化完成')
     } catch (error) {
       console.error('[App] 云开发初始化失败:', error)
+    }
+  },
+
+  /**
+   * 预加载首页数据
+   */
+  async preloadHomeData() {
+    try {
+      console.log('[App] 开始预加载首页数据')
+      performanceMonitor.startTimer('preload_home_data')
+      
+      const stockAPI = require('./utils/api.js')
+      
+      // 并行加载首页需要的数据
+      const [hotStocksRes, favoritesRes] = await Promise.allSettled([
+        stockAPI.getHotSearchStocks(),
+        stockAPI.getFavorites()
+      ])
+      
+      // 处理结果
+      const homeData = {
+        hotStocks: null,
+        favorites: null,
+        hasError: false,
+        errorMsg: ''
+      }
+      
+      // 处理热门股票
+      if (hotStocksRes.status === 'fulfilled' && hotStocksRes.value) {
+        homeData.hotStocks = hotStocksRes.value
+        console.log('[App] 热门股票预加载成功')
+      } else {
+        homeData.hasError = true
+        console.error('[App] 热门股票预加载失败:', hotStocksRes.reason)
+      }
+      
+      // 处理自选股
+      if (favoritesRes.status === 'fulfilled' && favoritesRes.value) {
+        homeData.favorites = favoritesRes.value
+        console.log('[App] 自选股预加载成功')
+      } else {
+        homeData.hasError = true
+        console.error('[App] 自选股预加载失败:', favoritesRes.reason)
+      }
+      
+      // 如果都失败了，设置错误信息
+      if (!homeData.hotStocks && !homeData.favorites) {
+        homeData.errorMsg = '网络连接失败，请检查网络设置'
+        homeData.hasError = true
+      }
+      
+      this.globalData.homeData = homeData
+      this.globalData.homeDataReady = true
+      
+      performanceMonitor.endTimer('preload_home_data', {
+        success: !homeData.hasError,
+        hasHotStocks: !!homeData.hotStocks,
+        hasFavorites: !!homeData.favorites
+      })
+      
+      console.log('[App] 首页数据预加载完成')
+      return homeData
+      
+    } catch (error) {
+      console.error('[App] 预加载数据异常:', error)
+      
+      this.globalData.homeData = {
+        hasError: true,
+        errorMsg: '加载失败，请稍后重试'
+      }
+      this.globalData.homeDataReady = true
+      
+      performanceMonitor.endTimer('preload_home_data', {
+        success: false,
+        error: error.message
+      })
+      
+      return this.globalData.homeData
     }
   },
 
@@ -335,7 +414,9 @@ const appInstance = {
     userInfo: null,
     apiUrl: 'https://api.example.com', // 这里需要替换为实际的API地址
     favoriteStocks: [], // 收藏的股票列表
-    initReady: false // 应用初始化完成标志
+    initReady: false, // 应用初始化完成标志
+    homeData: null, // 预加载的首页数据
+    homeDataReady: false // 首页数据准备完成标志
   }
 }
 
