@@ -31,10 +31,10 @@ class StockAPI {
   isDevelopmentEnvironment() {
     // 方法1: 检查是否在微信开发者工具中
     try {
-      if (typeof wx !== 'undefined' && wx.getSystemInfoSync) {
-        const systemInfo = wx.getSystemInfoSync()
+      if (typeof wx !== 'undefined' && wx.getDeviceInfo) {
+        const deviceInfo = wx.getDeviceInfo()
         // 开发者工具的platform通常为'devtools'
-        if (systemInfo.platform === 'devtools') {
+        if (deviceInfo.platform === 'devtools') {
           return true
         }
       }

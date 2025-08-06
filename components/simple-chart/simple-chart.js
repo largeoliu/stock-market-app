@@ -65,7 +65,7 @@ Component({
           
           // 获取设备像素比
           const deviceInfo = wx.getDeviceInfo()
-          const dpr = deviceInfo.pixelRatio
+          const dpr = deviceInfo.pixelRatio || 1
           
           // 设置画布实际宽高
           canvas.width = res[0].width * dpr

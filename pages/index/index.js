@@ -28,9 +28,9 @@ Page({
     performanceMonitor.startTimer('page_load_index')
     
     // 获取系统信息，设置安全区域
-    const systemInfo = wx.getSystemInfoSync()
+    const windowInfo = wx.getWindowInfo()
     this.setData({
-      safeAreaTop: systemInfo.safeArea?.top || systemInfo.statusBarHeight || 0
+      safeAreaTop: windowInfo.safeArea?.top || windowInfo.statusBarHeight || 0
     })
     
     performanceMonitor.markPhase('page_load_index', 'system_info_ready')

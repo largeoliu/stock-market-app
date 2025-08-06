@@ -267,7 +267,7 @@ class Track {
       error_type: errorType,
       error_message: errorMessage,
       context: context,
-      user_agent: wx.getSystemInfoSync().platform || 'unknown'
+      user_agent: wx.getDeviceInfo().platform || 'unknown'
     });
   }
 
