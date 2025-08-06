@@ -141,7 +141,7 @@ Component({
       
       // 绘制悬停指示器
       if (this.data.showTooltip && this.data.hoveredIndex !== -1) {
-        this.drawHoverIndicator(ctx, data, leftPadding, topPadding, chartWidth, chartHeight, minValue, Math.max(maxValue - minValue, 1)
+        this.drawHoverIndicator(ctx, data, leftPadding, topPadding, chartWidth, chartHeight, minValue, Math.max(maxValue - minValue, 1))
       }
       
       // 执行绘制
