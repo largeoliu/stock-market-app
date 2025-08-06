@@ -1,6 +1,7 @@
 <canvas 
   type="2d" 
   id="simple-chart"
+  class="simple-chart-canvas"
   style="width: {{width}}px; height: {{height}}px;"
   bindtouchstart="onTouchStart"
   bindtouchmove="onTouchMove"

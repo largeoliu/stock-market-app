@@ -80,8 +80,8 @@ Page({
     const { symbol, name, market, from } = options
     
     // 获取屏幕宽度
-    const systemInfo = wx.getSystemInfoSync()
-    const screenWidth = systemInfo.windowWidth
+    const windowInfo = wx.getWindowInfo()
+    const screenWidth = windowInfo.windowWidth
     
     this.setData({
       stock: {
@@ -421,8 +421,8 @@ Page({
         const activeIndex = this.data.periods.findIndex(item => item.active)
         if (activeIndex === -1) return
         
-        const systemInfo = wx.getSystemInfoSync()
-        const pxToRpx = 750 / systemInfo.windowWidth
+        const windowInfo = wx.getWindowInfo()
+        const pxToRpx = 750 / windowInfo.windowWidth
         
         const totalItems = this.data.periods.length
         const trackPadding = 6 // track的padding，单位px
@@ -447,8 +447,8 @@ Page({
     const query = wx.createSelectorQuery().in(this)
     query.select('.period-selector-track').boundingClientRect((rect) => {
       if (rect && rect.width > 0) {
-        const systemInfo = wx.getSystemInfoSync()
-        const pxToRpx = 750 / systemInfo.windowWidth
+        const windowInfo = wx.getWindowInfo()
+        const pxToRpx = 750 / windowInfo.windowWidth
         
         const totalItems = this.data.periods.length
         const trackPadding = 6 // track的padding，单位px
